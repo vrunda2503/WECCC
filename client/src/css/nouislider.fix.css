@@ -1,0 +1,13 @@
+/* .noUi-vertical .noUi-origin { top: -150% } */
+/* The vertical alignment is still an issue for the handle */
+
+.noUi-origin { width: 10% }
+.dashboard-flex {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: center;
+}
+.dashboard-item{
+    min-width: 40%;
+}

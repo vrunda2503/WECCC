@@ -1,0 +1,37 @@
+{
+  "name": "hospiceapi",
+  "version": "0.0.1",
+  "description": "API for Hospice",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "nodemon server.js",
+    "build": "cd client && npm run build",
+    "install-client": "cd client && npm install",
+    "heroku-postbuild": "npm run install-client && npm run build",
+    "start": "node server.js"
+},
+  "author": "Saman Arif",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "chartjs": "^0.3.24",
+    "chartjs-gauge": "^0.3.0",
+    "dotenv": "^8.0.0",
+    "express": "^4.16.4",
+    "express-promise-router": "^3.0.3",
+    "hashids": "^1.2.2",
+    "joi": "^14.3.0",
+    "jsonwebtoken": "^8.4.0",
+    "log4js": "^3.0.6",
+    "mongoose": "^5.12.8",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}

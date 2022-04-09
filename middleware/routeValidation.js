@@ -1,0 +1,133 @@
+/*
+=============================================================
+This middleware file will have access to the 
+request, and the response objec tof the current cycle.
+This helps control the next response from this server.
+Once the middleware is complete it is passed off to the next
+file in the stack.
+=============================================================
+*/
+
+const Joi = require('joi');
+
+//here authenticsation keys are made for each specific request
+module.exports = {
+    validateBody: (schema) => {
+        return (req, res, next) => {
+            const result = Joi.validate(req.body, schema);
+
+            if(result.error)
+            {
+                console.log(result.error)
+                return res.status(400).json({
+                    message: result.error
+                });
+            }
+           
+            next();
+        }
+    },
+    schemas: {
+        address: {
+            create: Joi.object().keys({
+                street: Joi.string().required(),
+                city: Joi.string().required(),
+                state: Joi.string().required(),
+                code: Joi.string().required(),
+                country: Joi.string().required()
+            })
+        },
+        auth: {
+            register: Joi.object().keys({
+                email: Joi.string().email().required(),
+                password: Joi.string().required(),
+                enabled: Joi.bool().required(),
+                role: Joi.string().required(),
+                facilityId: Joi.string().required(),
+                info: Joi.object().keys({
+                    name: Joi.string().required(),
+                    gender: Joi.string().required(),
+                    dateOfBirth: Joi.date().required(),
+                    phone: Joi.string().allow(''),
+                    language: Joi.string().required(),
+                    address: Joi.object().keys({
+                        street: Joi.string().required(),
+                        city: Joi.string().required(),
+                        state: Joi.string().required(),
+                        code: Joi.string().required(),
+                        country: Joi.string().required()
+                    })
+                    
+                })
+            }),
+            login: Joi.object().keys({
+                email: Joi.string().email().required(),
+                password: Joi.string().required()
+            })
+        },
+        facility: {
+            create: Joi.object().keys({
+                name: Joi.string().required(),
+                prefix: Joi.string().required()
+            })
+        },
+        memberSurvey: {
+            create: Joi.object().keys({
+                name: Joi.string().required(),
+                patientId: Joi.string().required(),
+                templateId: Joi.string().required(),
+                surveyJSON: Joi.string().required(),
+                responseJSON: Joi.string().allow(''),
+                completeStatus: Joi.number().integer().min(0).max(100),
+                approved: Joi.boolean().required(),
+                approvedBy: Joi.string().allow(''),
+                createdBy: Joi.string().required(),
+                modifiedBy: Joi.string().required()
+            })
+        },
+        stickyNote: {
+            create: Joi.object().keys({
+                patientId: Joi.string().required(),
+                level: Joi.string().required(),
+                message: Joi.string().required(),
+                open: Joi.boolean().required(),
+                createdBy: Joi.string().required(),
+                modifiedBy: Joi.string().required()
+            })
+        },
+        survey: {
+            create: Joi.object().keys({
+                name: Joi.string().required(),
+                surveyJSON: Joi.string().allow(''),
+                isPublic: Joi.boolean().required(),
+                createdBy: Joi.string().required(),
+                modifiedBy: Joi.string().required(),
+            })
+        },
+        collection: {
+            create: Joi.object().keys({
+                patientId: Joi.string().required(),
+                chapterTemplates: Joi.array().items(Joi.object({
+                    name: Joi.string().required(),
+                    surveyJSON: Joi.string().allow(''),
+                    isPublic: Joi.boolean().required(),
+                    createdBy: Joi.string().required(),
+                    modifiedBy: Joi.string().required()
+                })),
+                memberChapters: Joi.array().items(Joi.object({
+                    name: Joi.string().required(),
+                    patientId: Joi.string().required(),
+                    surveyJSON: Joi.string().required(),
+                    responseJSON: Joi.string().allow(''),
+                    completeStatus: Joi.number().integer().min(0).max(100),
+                    approved: Joi.boolean().required(),
+                    approvedBy: Joi.string().allow(''),
+                    createdBy: Joi.string().required(),
+                    modifiedBy: Joi.string().required()
+                })),
+                createdBy: Joi.string().required(),
+                modifiedBy: Joi.string().required(),
+            })
+        }
+    }
+};
