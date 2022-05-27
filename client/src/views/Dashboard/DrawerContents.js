@@ -31,6 +31,7 @@ import PersonPin from '@material-ui/icons/PersonPin';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import BuildOutlinedIcon from '@material-ui/icons/BuildOutlined';
 import PeopleIcon from '@material-ui/icons/People';
+import ListAltIcon from '@material-ui/icons/ListAlt';
 
 const styles = theme => ({
 	nested: {
@@ -106,6 +107,12 @@ class DrawerContents extends Component
 						<ListItemText primary="Your Reports" />
 					</ListItem>
 					}
+					{appState.role == "Patient" &&
+					<ListItem button component={Link} to="/ClientReports">
+						<ListItemIcon><AssessmentIcon color="primary"/></ListItemIcon>
+						<ListItemText primary="Your Reports" />
+					</ListItem>
+					}
 					<ListItem button component={Link} to="/profile">
 						<ListItemIcon><AccountBoxIcon color="primary"/></ListItemIcon>
 						<ListItemText>Your Profile</ListItemText>
@@ -138,9 +145,13 @@ class DrawerContents extends Component
 								<ListItemIcon><Ballot /></ListItemIcon>
 								<ListItemText secondary="Chapters" />
 							</ListItem>
-							<ListItem button component={Link} to="/administration/collections/management" className={classes.nested}>
+							<ListItem button component={Link} to="/administration/services/management" className={classes.nested}>
 								<ListItemIcon><LibraryBooksIcon /></ListItemIcon>
-								<ListItemText secondary="Collections" />
+								<ListItemText secondary="Services" />
+							</ListItem>
+							<ListItem button component={Link} to="/administration/projects/management" className={classes.nested}>
+								<ListItemIcon><ListAltIcon /></ListItemIcon>
+								<ListItemText secondary="Projects" />
 							</ListItem>
 							<ListItem button component={Link} to="/administration/reports/management" className={classes.nested}>
 								<ListItemIcon><AssessmentIcon /></ListItemIcon>

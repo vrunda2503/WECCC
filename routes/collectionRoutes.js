@@ -15,8 +15,10 @@ const authenticate = passport.authenticate('JwtToken', { session: false });
 
 router.get('/', authenticate, CollectionController.readall);
 router.get('/:collectionId', authenticate, CollectionController.readByCollectionId);
-router.get('/patient/:patientId', authenticate, CollectionController.readByPatientId);
+router.get('/client/:clientId', authenticate, CollectionController.readByClientId);
 router.post('/', validateBody(schemas.collection.create), authenticate, CollectionController.create);
+router.post('/assign/member', authenticate, CollectionController.assignMember);
+router.post('/assign/project', authenticate, CollectionController.assignProject);
 router.post('/query', authenticate, CollectionController.query);
 router.patch('/:collectionId', authenticate, CollectionController.update);
 router.delete('/:collectionId', authenticate, CollectionController.delete);

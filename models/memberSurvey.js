@@ -12,54 +12,39 @@ const mongoose = require('mongoose');
 
 const surveySchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
-    patientId: {
+    surveyTemplate: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    },
-    templateId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Survey'
-    },
-    collectionId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Collection'
-    },
-    name: { 
-        type: String, 
+        ref: 'Survey',
         required: true
     },
-    surveyJSON: {
-        type: String,
-        required: true,
-        default: ""
+    memberCollection: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Collection',
+        default: null,
+    },
+    member: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
     responseJSON: {
         type: String,
         default: ""
     },
-    completeStatus: {
+    completeness: {
         type: Number,
-        required: true,
         default: 0,
-    },
-    approved: {
-        type: Boolean,
-        required: true,
-        default: false,
-    },
-    approvedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
     },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'User'
+        ref: 'User',
+        required: true
+
     },
     modifiedBy: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'User'
+        ref: 'User',
+        required: true
     }
 },
 {

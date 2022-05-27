@@ -13,7 +13,7 @@ import AlertMessage from '../../../../components/AlertMessage';
 // import 'nouislider/dist/nouislider.css'; This is the newer 15.5.0 version
 // import "nouislider/distribute/nouislider.css"; This is the old 9.2.0 version
 
-import 'nouislider/dist/nouislider.css';
+import "nouislider/distribute/nouislider.css";
 import '../../../../css/nouislider.fix.css';
 
 import "bootstrap-slider/dist/css/bootstrap-slider.css";
@@ -173,7 +173,7 @@ const ViewChapterUser = (props) => { // Notice the arrow function... regular fun
 
                 try
                 {
-                    let surveyJSON = JSON.parse(chapterOriginal.surveyJSON);
+                    let surveyJSON = JSON.parse(chapterOriginal.surveyTemplate.surveyJSON);
                     let responseJSON = JSON.parse(chapterOriginal.responseJSON); 
                     let tempSurvey = new Survey.Model(surveyJSON);
                     tempSurvey.data = responseJSON;
@@ -219,7 +219,7 @@ const ViewChapterUser = (props) => { // Notice the arrow function... regular fun
                                     </Grid> */}
                                     <Grid item xs>
                                         <Typography variant="h4" color="inherit" align="left" gutterBottom>
-                                            Viewing {chapterOriginal? `"${chapterOriginal.name}"` : null}
+                                            Viewing {chapterOriginal? `"${chapterOriginal.surveyTemplate.name}"` : null}
                                         </Typography>
                                     </Grid>
                                 </Grid>

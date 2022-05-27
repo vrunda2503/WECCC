@@ -13,15 +13,17 @@ Methods:
 */
 
 const mongoose = require("mongoose");
+
 const User = require("../models/user");
+const Project = require("../models/project");
+const Collection = require("../models/collection");
+const MemberCollection = require("../models/memberCollection");
 const Survey = require("../models/survey");
 const MemberSurvey = require("../models/memberSurvey");
-const Collection = require("../models/collection");
+
 const config = require("../config/config");
-const logger = require("../config/logging");
-const memberSurvey = require("../models/memberSurvey");
 const { collections } = require("../config/logging");
-const log = logger.collections;
+const log = collections;
 
 // ====================================================
 // Create a new Collection
@@ -29,123 +31,70 @@ const log = logger.collections;
 
 exports.create = (req, res, next) => 
 {
+    const surveyIdList = req.body.surveyList;
+    
+    log.warn("Incoming Collection Create Request.");
+
     const collection = new Collection({
         _id: new mongoose.Types.ObjectId(),
-        patientId: req.body.patientId,
-        chapterTemplates: [],
-        memberChapters: [],
+        name: req.body.name,
+        projectList: new Array(),
+        memberCollectionList: new Array(),
+        memberList: new Array(),
+        surveyList: surveyIdList,
         createdBy: req.body.createdBy,
         modifiedBy: req.body.modifiedBy
     });
 
-    Survey.find( { isPublic: true } )
-    .exec()
-    .then(chapterTemplates => {
-        if(chapterTemplates && chapterTemplates.length > 0)
+    Survey.find( { _id: { $in: surveyIdList } } ).exec()
+    .then(verifiedSurveyTemplateList => {
+        if(verifiedSurveyTemplateList)
         {
-            chapterTemplates.forEach(template => {
+            collection.save()
+            .then(newCollection => {
 
-                collection.chapterTemplates.push(template);
+                if(newCollection)
+                {
+                    log.info("Successful Collection Create Request.");
 
-                let memberSurvey = new MemberSurvey({
-                    _id: new mongoose.Types.ObjectId(),
-                    patientId: req.body.patientId,  //Target person
-                    templateId: template._id,
-                    name: template.name,
-                    surveyJSON: template.surveyJSON,
-                    responseJSON: "{}",
-                    completeStatus: 0,
-                    approved: false,
-                    createdBy: req.body.createdBy, //Creator person
-                    modifiedBy: req.body.modifiedBy, //Creator person
-                });
-
-                
-                memberSurvey.save()
-                .then(newMemberSurvey => {
-
-                    collection.memberChapters.push(newMemberSurvey);
-
-                    if(collection.memberChapters.length == collection.chapterTemplates.length)
-                    {
-                        collection.save().then(newCollection => {
-
-                            User.findByIdAndUpdate(req.body.patientId, { $addToSet: { "collections": newCollection._id } }, {safe: true, upsert: false, new : true},  (error, newUser) => {
-                                
-                                if(error)
-                                {
-                                    log.error(error);
-                                    
-                                    return res.status(500).json({
-                                        message: error.message
-                                    });
-                                }
-                                else
-                                {
-                                    newCollection.memberChapters.forEach( memberChapter => {
-
-                                        MemberSurvey.findByIdAndUpdate(memberChapter._id, { collectionId: newCollection._id }, (error, newChapter) => {
-                                            if(error)
-                                            {
-                                                log.error(error);
-                                                
-                                                return res.status(500).json({
-                                                    message: error.message
-                                                });
-                                            }
-                                            else
-                                            {
-                                                
-                                                return res.status(201).json({
-                                                    collection: newCollection,
-                                                    request: { 
-                                                        type: 'POST',
-                                                        url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/'
-                                                    }
-                                                });
-
-                                            }
-                                        })
-                                        .catch(error => {
-                                            log.error(error.message);
-                                    
-                                            return res.status(500).json({
-                                                message: error.message
-                                            });
-                                        });
-                                    });
-                                }
-                            });
-                        })
-                        .catch(error => {
-                            log.error(error.message);
-                    
-                            return res.status(500).json({
-                                message: error.message
-                            });
-                        });
-                    }
-                })
-                .catch(error => {
-                    log.error(error.message);
-            
-                    return res.status(500).json({
-                        message: error.message
+                    return res.status(201).json({
+                        collection: newCollection,
+                        request: { 
+                            type: 'POST',
+                            url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/'
+                        }
                     });
+                }
+                else
+                {
+                    log.error("Couldn't save Collection.");
+
+                    return res.status(500).json({
+                        message: "Couldn't save Collection."
+                    });
+                }
+
+            })
+            .catch(error => {
+                log.error(error.message);
+        
+                return res.status(500).json({
+                    message: error.message
                 });
-
-
             });
-            
         }
         else
         {
+            log.error("Survey Template(s) not valid.");
+
             return res.status(404).json({
-                message: "Error finding public chapter templates."
+                message: "Survey Template(s) not valid."
             });
         }
+
     })
     .catch(error => {
+
         log.error(error.message);
 
         return res.status(500).json({
@@ -162,50 +111,40 @@ exports.readByCollectionId = (req, res, next) =>
 {
     const id = req.params.collectionId;
 
-    log.info("Incoming read for collection with id " + id);
+    log.warn("Incoming read for Collection with id " + id);
 
     Collection.findById(id)
-    .populate('chapterTemplates')
-    .populate('memberChapters')
-    .populate('patientId')
-    .exec()
-    .then(collection => {
-        if(collection)
+    .populate('projectList chapterTemplates surveyList').exec()
+    .then(foundCollection => {
+        if(foundCollection)
         {
-            let sum = 0;            
-                    
-            collection.memberChapters.forEach(userChapter => {
-                if(!isNaN(parseFloat(userChapter.completeStatus)))
-                {
-                    sum+= parseFloat(userChapter.completeStatus); 
-                }   
-            });
-
-            let overallCompleteness = parseFloat(parseFloat(sum/collection.memberChapters.length).toFixed(4));
+            log.info("Successful read for Collection with id " + id);
 
             res.status(200).json({
                 collection: {
-                    __v: collection.__v,
-                    _id: collection._id,
-                    chapterTemplates: collection.chapterTemplates,
-                    createdAt: collection.createdAt,
-                    createdBy: collection.createdBy,
-                    memberChapters: collection.memberChapters,
-                    modifiedBy: collection.modifiedBy,
-                    patientId: collection.patientId,
-                    updatedAt: collection.updatedAt,
-                    overallCompleteness: overallCompleteness
+                    _id: foundCollection._id,
+                    name: foundCollection.name,
+                    projectList: foundCollection.chapterTemplates,
+                    memberCollectionList: foundCollection.memberCollectionList,
+                    memberList: foundCollection.memberList,
+                    surveyList: foundCollection.surveyList,
+                    createdAt: foundCollection.createdAt,
+                    createdBy: foundCollection.createdBy,
+                    updatedAt: foundCollection.updatedAt,
+                    modifiedBy: foundCollection.modifiedBy,
                 },               
                 request: { 
                     type: 'GET',
-                    url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/' + collection._id
+                    url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/' + foundCollection._id
                 }
             });
         }
         else
         {
+            log.error("Collection with id " + id + " not found.");
+
             res.status(404).json({
-                message: "Collection not found."
+                message: "Collection with id " + id + " not found."
             });
         }
     })
@@ -219,31 +158,35 @@ exports.readByCollectionId = (req, res, next) =>
 };
 
 // ====================================================
-// Read By Patient ID
+// Read By Client ID
 // ====================================================
-exports.readByPatientId = (req, res, next) => 
+exports.readByClientId = (req, res, next) => 
 {
-    const id = req.params.patientId;
+    const id = req.params.clientId;
 
-    log.info("Incoming read for Collections with Patient id " + id);
+    log.warn("Incoming read request for Collections associated to Client with Id " + id);
 
-    Collection.find( { patientId: id } )
-    .exec()
-    .then(collections => {
-        if(collections)
+    Collection.find( { "memberList" : id } )
+    .populate('projectList chapterTemplates surveyList').exec()
+    .then(foundCollections => {
+        if(foundCollections)
         {
+            log.info("Successful read request for Collections associated to Client with Id " + id);
+
             res.status(200).json({
-                collections: collections,
+                collections: foundCollections,
                 request: { 
                     type: 'GET',
-                    url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/patient/' + id
+                    url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/client/' + id
                 }
             });
         }
         else
         {
+            log.error("Collections with Client Id " + id + " not found.");
+
             res.status(404).json({
-                message: "Collection not found."
+                message: "Collections with Client Id " + id + " not found."
             });
         }
     })
@@ -261,57 +204,43 @@ exports.readByPatientId = (req, res, next) =>
 // ====================================================
 exports.readall = (req, res, next) => 
 {
-    log.info("Incoming readall collections request");
+    log.warn("Incoming readall request for Collections");
 
     Collection.find()
-    .populate('patientId')
-    .populate('chapterTemplates')
-    .populate('memberChapters')
-    .exec()
-    .then(collections => {
-
-        if(collections)
+    .populate('projectList memberCollectionList surveyList').exec()
+    .then(foundCollections => {
+        if(foundCollections)
         {
-            const response = {
-                count: collections.length,
-                collections: collections.map(collection => {
-                    
-                    let sum = 0;            
-                    
-                    collection.memberChapters.forEach(userChapter => {
-                        if(!isNaN(parseFloat(userChapter.completeStatus)))
-                        {
-                             sum+= parseFloat(userChapter.completeStatus); 
-                        }   
-                    });
+            log.info("Successful readall request for Collections");
 
-                    let overallCompleteness = parseFloat(parseFloat(sum/collection.memberChapters.length).toFixed(4));
-
+            res.status(200).json({
+                count: foundCollections.length,
+                collectionList: foundCollections.map(collection => {
                     return {
                         _id: collection._id,
-                        patientName: collection.patientId.info.name,
-                        patientId: collection.patientId._id,
-                        chapterTemplates: collection.chapterTemplates,
-                        memberChapters: collection.memberChapters,
-                        overallCompleteness: !isNaN(overallCompleteness)? overallCompleteness : 0,
-                        createdBy: collection.createdBy,
-                        modifiedBy: collection.modifiedBy,
+                        name: collection.name,
+                        projectList: collection.projectList,
+                        memberCollectionList: collection.memberCollectionList,
+                        memberList: collection.memberList,
+                        surveyList: collection.surveyList,
                         createdAt: collection.createdAt,
+                        createdBy: collection.createdBy,
                         updatedAt: collection.updatedAt,
+                        modifiedBy: collection.modifiedBy
                     }
                 }),
                 request: { 
                     type: 'GET',
                     url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/'
                 }
-            }
-    
-            res.status(200).json({response});
+            });
         }
         else
         {
+            log.error("Error readall request for Collections");
+
             res.status(404).json({
-                message: "Collection not found."
+                message: "Error readall request for Collections"
             });
         }
     })
@@ -330,34 +259,48 @@ exports.readall = (req, res, next) =>
 exports.query = (req, res, next) => 
 {
     const query = req.body;
-
-    log.info("Incoming query");
-    log.info(query);
+    
+    log.warn("Incoming query request for Collections");
 
     Collection.find(query)
-    .exec()
-    .then(collections => {
-        const response = {
-            count: collections.length,
-            collections: collections.map(collection => {
-                return {
-                    _id: collection._id,
-                    patientId: collection.patientId,
-                    chapterTemplates: collection.chapterTemplates,
-                    memberChapters: collection.memberChapters,
-                    createdBy: collection.createdBy,
-                    modifiedBy: collection.modifiedBy,
-                    createdAt: collection.createdAt,
-                    updatedAt: collection.updatedAt,
+    .populate('projectList memberCollectionList surveyList').exec()
+    .then(foundCollections => {
+
+        if(foundCollections)
+        {
+            log.info("Successful query request for Collections");
+
+            res.status(200).json({
+                count: foundCollections.length,
+                collectionList: foundCollections.map(collection => {
+                    return {
+                        _id: collection._id,
+                        name: collection.name,
+                        projectList: collection.projectList,
+                        memberCollectionList: collection.memberCollectionList,
+                        memberList: collection.memberList,
+                        surveyList: collection.surveyList,
+                        createdAt: collection.createdAt,
+                        createdBy: collection.createdBy,
+                        updatedAt: collection.updatedAt,
+                        modifiedBy: collection.modifiedBy
+                    }
+                }),
+                request: { 
+                    type: 'POST',
+                    url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/query'
                 }
-            }),
-            request: { 
-                type: 'POST',
-                url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/query'
-            }
+            });
+        }
+        else
+        {
+            log.error("Error query request for Collections");
+
+            res.status(404).json({
+                message: "Error query request for Collections"
+            });
         }
 
-        res.status(200).json({response});
     })
     .catch(error => {
         log.error(error.message);
@@ -374,33 +317,16 @@ exports.query = (req, res, next) =>
 exports.update = (req, res, next) => 
 {
     const id = req.params.collectionId;
-    const query = req.body;
+    const updateQuery = req.body;
 
-    log.info("Incoming update query");
-    log.info(query);
+    log.warn("Incoming update request for Collection with Id " + id);
 
-    Collection.findById(id, (error, collection) => {
-        if(error)
+    Collection.findByIdAndUpdate(id, updateQuery).exec()
+    .then(updatedCollection => {
+        
+        if(updatedCollection)
         {
-            log.error(error.message);
-
-            return res.status(404).json({
-                message: error.message
-            });
-        }
-
-        collection.set(query);
-        collection.save(function(saveError, updatedCollection) {
-            if(saveError)
-            {
-                log.error(saveError.message);
-
-                return res.status(500).json({
-                    message: saveError.message
-                });
-            }
-
-            log.info("Collection with id: " + id + " updated.");
+            log.info("Successful update request for Collection with Id " + id);
 
             return res.status(200).json({
                 collection: updatedCollection,
@@ -408,9 +334,178 @@ exports.update = (req, res, next) =>
                     type: 'PATCH',
                     url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/' + updatedCollection._id
                 }
-            })
+            });
+
+        }
+        else
+        {
+            log.error("Error update request for Collections");
+
+            res.status(500).json({
+                message: "Error update request for Collections"
+            });
+        }
+    })
+    .catch(error => {
+        log.error(error.message);
+
+        return res.status(500).json({
+            message: error.message
         });
     });
+
+};
+
+// ====================================================
+// Assign Member
+// ====================================================
+exports.assignMember = (req, res, next) => 
+{
+    const id = req.body.collectionId;
+    const updateBody = req.body;
+    const assignMemberIdList = updateBody.memberList;
+
+    log.warn("Incoming assign Member request for Collection with Id " + id);
+    
+    Collection.findByIdAndUpdate(id, { $addToSet: { "memberList": assignMemberIdList } }).exec()
+    .then(updatedCollection => {
+        if(updatedCollection)
+        {
+            User.updateMany({ _id: { $in: assignMemberIdList } }, { $addToSet: { "collectionList": id } } ).exec()
+            .then(res1 => {           
+                if(res1)
+                {   
+                    log.info("Successful assign Member request for Collection with Id " + id);
+
+                    return res.status(200).json({
+                        request: { 
+                            type: 'POST',
+                            url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/assign/member'
+                        }
+                    });
+
+                }   
+                else
+                {
+                    log.error("Bad assign Member request for Collection with Id " + id);
+
+                    res.status(500).json({
+                        message: "Bad assign Member request for Collection with Id " + id
+                    });
+                }
+            })
+            .catch(error => {
+                log.error(error.message);
+
+                return res.status(500).json({
+                    message: error.message
+                });
+            });
+        }
+        else
+        {
+            log.error("Bad update for Collection with Id " + id);
+
+            res.status(500).json({
+                message: "Bad update for Collection with Id " + id
+            });
+        }
+    })
+    .catch(error => {
+        log.error(error.message);
+
+        return res.status(500).json({
+            message: error.message
+        });
+    });
+    
+};
+
+// ====================================================
+// Assign Project
+// ====================================================
+exports.assignProject = (req, res, next) => 
+{
+    const id = req.body.collectionId;
+    const updateBody = req.body;
+    const assignProjectIdList = updateBody.projectList;
+
+    log.warn("Incoming assign Service request for Collection with Id " + id);
+
+    Collection.findByIdAndUpdate(id, { $addToSet: { "projectList": assignProjectIdList } }).exec()
+    .then(updatedCollection => {
+        if(updatedCollection)
+        {
+            Project.updateMany({ _id: { $in: assignProjectIdList } }, { $addToSet: { "collectionList": id } }).exec()
+            .then(res1 => {           
+                if(res1)
+                {   
+                    User.updateMany({ "projectList": { $in: assignProjectIdList } }, { $addToSet: { "collectionList": id } }).exec()
+                    .then(res2 => {
+                        if(res2)
+                        {
+                            log.info("Successful assign Project request for Collection with Id " + id);
+
+                            return res.status(200).json({
+                                request: { 
+                                    type: 'POST',
+                                    url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/assign/project'
+                                }
+                            });
+                        }
+                        else
+                        {
+                            log.error("Bad assign Member request for Collection with Id " + id);
+
+                            res.status(500).json({
+                                message: "Bad assign Member request for Collection with Id " + id
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        log.error(error.message);
+        
+                        return res.status(500).json({
+                            message: error.message
+                        });
+                    });
+
+                }   
+                else
+                {
+                    log.error("Bad assign Project request for Collection with Id " + id);
+
+                    res.status(500).json({
+                        message: "Bad assign Project request for Collection with Id " + id
+                    });
+                }
+            })
+            .catch(error => {
+                log.error(error.message);
+
+                return res.status(500).json({
+                    message: error.message
+                });
+            }); 
+
+        }
+        else
+        {
+            log.error("Bad update for Collection with Id " + id);
+
+            res.status(500).json({
+                message: "Bad update for Collection with Id " + id
+            });
+        }
+    })
+    .catch(error => {
+        log.error(error.message);
+
+        return res.status(500).json({
+            message: error.message
+        });
+    });
+    
 };
 
 // ====================================================
@@ -420,60 +515,109 @@ exports.delete = (req, res, next) =>
 {
     const id = req.params.collectionId;
 
-    Collection.findById(id)
-    .exec()
-    .then(collection => {
-        if(collection)
+    log.warn("Incoming delete request for Collection with Id " + id);
+
+    User.updateOne( { "collectionList" : id }, { $pull: { "collectionList": id } } )
+    .then(res1 => {
+        if(res1)
         {
-            collection.memberChapters.forEach(memberChapters => {
-                MemberSurvey.findByIdAndDelete(memberChapters._id)
-                .exec()
-                .then(result => {
-                    if(result)
-                    {
-                        log.info("MemberSurvey with id " + result._id + " deleted");
-
-                        collection.memberChapters.remove(result._id);
-
-                        if(collection.memberChapters.length == 0)
+            Project.updateMany( { "collectionList" : id }, { $pull: { "collectionList": id } } )
+            .then(res2 => {
+                if(res2)
+                {
+                    MemberCollection.find( { "collectionTemplate": id } ).exec()
+                    .then(collectionMemberCollectionDocList => {
+                        if(collectionMemberCollectionDocList)
                         {
-                            Collection.findByIdAndDelete(id)
-                            .exec()
-                            .then(result => {
-                                if(result)
-                                {
-                                    log.info("Collection with id: " + id + " deleted.");
+                            const collectionMemberCollectionIdList = collectionMemberCollectionDocList.map((doc) => { return doc._id; });
 
-                                    User.findByIdAndUpdate(result.patientId, { $pull: { "collections": result._id } }, {safe: true, upsert: false, new : true},  (error, newUser) => {
-                                
-                                        if(error)
+                            MemberSurvey.find( { "collectionTemplate": { $in: collectionMemberCollectionIdList } } ).exec()
+                            .then(memberCollectionMemberSurveyDocList => {
+                                if(memberCollectionMemberSurveyDocList)
+                                {
+                                    const memberCollectionMemberSurveyIdList = memberCollectionMemberSurveyDocList.map((doc) => { return doc._id; });
+                                    
+                                    MemberSurvey.deleteMany( { _id: { $in: memberCollectionMemberSurveyIdList } } )
+                                    .then(res3 => {
+                                        if(res3)
                                         {
-                                            log.error(error);
-                                            
-                                            return res.status(500).json({
-                                                message: error.message
+                                            MemberCollection.deleteMany( { _id: { $in: collectionMemberCollectionIdList } } )
+                                            .then(res4 => {
+                                                if(res4)
+                                                {
+                                                    Collection.deleteOne( { _id: id } )
+                                                    .then(res5 => {
+                                                        if(res5)
+                                                        {
+                                                            log.info("Successful delete request for Collection with Id " + id);
+
+                                                            return res.status(200).json({
+                                                                request: { 
+                                                                    type: 'DELETE',
+                                                                    url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/' + id
+                                                                }
+                                                            });
+                                                        }
+                                                        else
+                                                        {
+                                                            log.error("Could not remove Collection.");
+
+                                                            return res.status(500).json({
+                                                                message: "Could not remove MemberCollections."
+                                                            });
+                                                        }
+                                                    })
+                                                    .catch(error => {
+                                                        log.error(error.message);
+                                                
+                                                        return res.status(500).json({
+                                                            message: error.message
+                                                        });
+                                                    });
+                                                }
+                                                else
+                                                {
+                                                    log.error("Could not remove MemberCollections.");
+
+                                                    return res.status(500).json({
+                                                        message: "Could not remove MemberCollections."
+                                                    });
+                                                }
+                                            })
+                                            .catch(error => {
+                                                log.error(error.message);
+                                        
+                                                return res.status(500).json({
+                                                    message: error.message
+                                                });
                                             });
                                         }
                                         else
                                         {
-                                            res.status(200).json({
-                                                message: "Collection deleted.",
-                                                request: { 
-                                                    type: 'DELETE',
-                                                    url: config.server.protocol + '://' + config.server.hostname +':' + config.server.port + '/api/collections/' + id
-                                                }
+                                            log.error("Could not remove MemberSurveys.");
+
+                                            return res.status(500).json({
+                                                message: "Could not remove MemberSurveys."
                                             });
                                         }
+                                    })
+                                    .catch(error => {
+                                        log.error(error.message);
+                                
+                                        return res.status(500).json({
+                                            message: error.message
+                                        });
                                     });
                                 }
                                 else
                                 {
-                                    log.warn("Unable to delete Collection with id: " + id);
-                        
-                                    res.status(401).json({
-                                        message: "Unable to delete Collection."
+                                    log.error("Could not find MemberSurveys from MemberCollections.");
+        
+                                    return res.status(500).json({
+                                        message: "Could not find MemberSurveys from MemberCollections."
                                     });
                                 }
+                            
                             })
                             .catch(error => {
                                 log.error(error.message);
@@ -482,31 +626,51 @@ exports.delete = (req, res, next) =>
                                     message: error.message
                                 });
                             });
+
                         }
+                        else
+                        {
+                            log.error("Could not find MemberCollections from Collection.");
 
-                    }
-                    else
-                    {
-                        log.warn("Unable to delete MemberSurvey with id " + id);
-
-                        res.status(401).json({
-                            message: "Unable to delete MemberSurvey"
+                            return res.status(500).json({
+                                message: "Could not find MemberCollections from Collection."
+                            });
+                        }
+                    
+                    })
+                    .catch(error => {
+                        log.error(error.message);
+                
+                        return res.status(500).json({
+                            message: error.message
                         });
-                    }
-                })
-                .catch(error => {
-                    log.error(error.message);
-
-                    return res.status(500).json({
-                        message: error.message
                     });
+
+                }
+                else
+                {
+                    log.error("Error removing Collection from Projects");
+        
+                    res.status(500).json({
+                        message: "Error removing Collection from Projects"
+                    });
+                }
+            })
+            .catch(error => {
+                log.error(error.message);
+        
+                return res.status(500).json({
+                    message: error.message
                 });
             });
+
         }
         else
         {
-            res.status(404).json({
-                message: "Collection not found."
+            log.error("Error removing Collection from Users");
+
+            res.status(500).json({
+                message: "Error removing Collection from Users"
             });
         }
     })

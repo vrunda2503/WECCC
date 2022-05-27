@@ -371,7 +371,6 @@ const UserGeneralPropertiesTab = (props) => { // Notice the arrow function... re
         }, [ password, confirmPassword, setConfirmPasswordError ]);
 
 
-
     // Render Section ===
 
         return (
@@ -472,6 +471,98 @@ const UserGeneralPropertiesTab = (props) => { // Notice the arrow function... re
                                 <Grid item xs={12}>
                                     <Box mx={1} my={1} boxShadow={0}>
                                         <Grid container direction="row" justifyContent="flex-start" alignItems="stretch" spacing={3}>
+
+                                            <Grid item xs></Grid>
+                                            <Grid item xs={12}>
+                                                <Typography variant="subtitle2" component="h6" color="textPrimary">
+                                                    Login Properties
+                                                </Typography>
+                                                <Divider light/>
+                                            </Grid>
+                                            <Grid item xs={4}>
+                                                <TextField id="Email" size="small" variant="outlined" fullWidth label="Email" required onChange={(event) => { emailHandler(event); }} value={userEdit.email} error={emailError}
+                                                    readOnly={editable? false : true}
+                                                    disabled={editable? false : true}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={8}></Grid>
+                                            <Grid item xs={4}>
+                                                <TextField id="New-Password" size="small" variant="outlined" fullWidth type="password" label="New Password" required onChange={(event) => { passwordHandler(event); }} value={password} error={passwordError}
+                                                    readOnly={editable? false : true}
+                                                    disabled={editable? false : true}
+                                                />
+                                            </Grid>
+                                            <Grid item xs={8}></Grid>
+                                            <Grid item xs={4}>
+                                                <TextField id="Confirm-New-Password" size="small" variant="outlined" fullWidth type="password" label="Confirm Password" required onChange={(event) => { confirmPasswordHandler(event); }} value={confirmPassword} error={confirmPasswordError}
+                                                    readOnly={editable? false : true}
+                                                    disabled={editable? false : true} 
+                                                />
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                        ) : (
+                            <Grid
+                                container
+                                direction="column"
+                                justifyContent="flex-start"
+                                alignItems="stretch"
+                                spacing={1}
+                            >
+                                <Grid item xs={12} container direction="row" justifyContent="center" alignItems="stretch" spacing={1}>
+                                    <Grid item>
+                                        <Box mx={1} my={1} boxShadow={0}>
+                                            <CircularProgress />
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            </Grid>
+                        )}
+                    </Collapse>
+                </div>   
+            ) : (
+                <>
+                </>
+                // <Typography variant="h6" color="inherit" align="center" gutterBottom>
+                //     Not Authorized. Please refresh and try again.
+                // </Typography>
+            )
+            
+        );
+}
+
+
+// ======================== Component PropType Check ========================
+UserGeneralPropertiesTab.propTypes = 
+{
+    // You can specify the props types in object style with ___.PropTypes.string.isRequired etc...
+    appState: PropTypes.object.isRequired,
+    userID: PropTypes.string.isRequired,
+    setParentAlert: PropTypes.func.isRequired,
+    getParentInfo: PropTypes.func.isRequired,
+    panelId: PropTypes.number.isRequired,
+    panelIndex: PropTypes.number.isRequired,
+    userOriginal: PropTypes.object
+}
+
+UserGeneralPropertiesTab.defaultProps = 
+{
+    appState: {},
+    userID: null,
+    setParentAlert: () => {},
+    getParentInfo: () => {},
+    panelId: null,
+    panelIndex: null,
+    userOriginal: {}
+}
+
+export default UserGeneralPropertiesTab;  // You can even shorthand this line by adding this at the function [Component] declaration stage
+
+// ======================== System Properties ========================
+/*
+
                                             <Grid item xs={12}>
                                                 <Typography variant="subtitle2" component="h6" color="textPrimary">
                                                     System Properties
@@ -554,89 +645,5 @@ const UserGeneralPropertiesTab = (props) => { // Notice the arrow function... re
                                                 <>
                                                 </>
                                             )}
-                                            <Grid item xs></Grid>
-                                            <Grid item xs={12}>
-                                                <Typography variant="subtitle2" component="h6" color="textPrimary">
-                                                    Login Properties
-                                                </Typography>
-                                                <Divider light/>
-                                            </Grid>
-                                            <Grid item xs={4}>
-                                                <TextField id="Email" size="small" variant="outlined" fullWidth label="Email" required onChange={(event) => { emailHandler(event); }} value={userEdit.email} error={emailError}
-                                                    readOnly={editable? false : true}
-                                                    disabled={editable? false : true}
-                                                />
-                                            </Grid>
-                                            <Grid item xs={8}></Grid>
-                                            <Grid item xs={4}>
-                                                <TextField id="New-Password" size="small" variant="outlined" fullWidth type="password" label="New Password" required onChange={(event) => { passwordHandler(event); }} value={password} error={passwordError}
-                                                    readOnly={editable? false : true}
-                                                    disabled={editable? false : true}
-                                                />
-                                            </Grid>
-                                            <Grid item xs={8}></Grid>
-                                            <Grid item xs={4}>
-                                                <TextField id="Confirm-New-Password" size="small" variant="outlined" fullWidth type="password" label="Confirm Password" required onChange={(event) => { confirmPasswordHandler(event); }} value={confirmPassword} error={confirmPasswordError}
-                                                    readOnly={editable? false : true}
-                                                    disabled={editable? false : true} 
-                                                />
-                                            </Grid>
-                                        </Grid>
-                                    </Box>
-                                </Grid>
-                            </Grid>
-                        ) : (
-                            <Grid
-                                container
-                                direction="column"
-                                justifyContent="flex-start"
-                                alignItems="stretch"
-                                spacing={1}
-                            >
-                                <Grid item xs={12} container direction="row" justifyContent="center" alignItems="stretch" spacing={1}>
-                                    <Grid item>
-                                        <Box mx={1} my={1} boxShadow={0}>
-                                            <CircularProgress />
-                                        </Box>
-                                    </Grid>
-                                </Grid>
-                            </Grid>
-                        )}
-                    </Collapse>
-                </div>   
-            ) : (
-                <>
-                </>
-                // <Typography variant="h6" color="inherit" align="center" gutterBottom>
-                //     Not Authorized. Please refresh and try again.
-                // </Typography>
-            )
-            
-        );
-}
 
-// ======================== Component PropType Check ========================
-UserGeneralPropertiesTab.propTypes = 
-{
-    // You can specify the props types in object style with ___.PropTypes.string.isRequired etc...
-    appState: PropTypes.object.isRequired,
-    userID: PropTypes.string.isRequired,
-    setParentAlert: PropTypes.func.isRequired,
-    getParentInfo: PropTypes.func.isRequired,
-    panelId: PropTypes.number.isRequired,
-    panelIndex: PropTypes.number.isRequired,
-    userOriginal: PropTypes.object
-}
-
-UserGeneralPropertiesTab.defaultProps = 
-{
-    appState: {},
-    userID: null,
-    setParentAlert: () => {},
-    getParentInfo: () => {},
-    panelId: null,
-    panelIndex: null,
-    userOriginal: {}
-}
-
-export default UserGeneralPropertiesTab;  // You can even shorthand this line by adding this at the function [Component] declaration stage
+*/

@@ -1,8 +1,7 @@
 // ================================================
 // Code associated with 
 // ================================================
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';                     //Development Package to validate prop types [Type Checking] passed down
 
 // ==================== Modules =====================
@@ -11,7 +10,9 @@ import PropTypes from 'prop-types';                     //Development Package to
 // import ChangesUserDialog from '../Dialog/ChangesUserDialog';
 
 // ==================== Helpers =====================
-import patch from '../../../../../helpers/common/patch';
+import post from '../../../../../helpers/common/post';
+import get from '../../../../../helpers/common/get';
+import put from '../../../../../helpers/common/put';
 import AlertType from '../../../../../helpers/models/AlertType';
 
 // ==================== MUI =========================
@@ -24,6 +25,10 @@ import Tab from '@material-ui/core/Tab';
 import Grid from '@material-ui/core/Grid';  // Normal Markup with MUI is layout -> Container -> Grid -> Paper etc...
 import Box from '@material-ui/core/Box';    // Padding and margins
 import Card from '@material-ui/core/Card';  //Like the paper module, a visual sheet to place things
+import CardContent from '@material-ui/core/CardContent';
+import CardHeader from "@material-ui/core/CardHeader";
+import MarkunreadIcon from '@material-ui/icons/Markunread';
+import MailOutlineIcon from '@material-ui/icons/MailOutline';
 import Divider from '@material-ui/core/Divider';
 
 import Tooltip from '@material-ui/core/Tooltip';
@@ -34,19 +39,19 @@ import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Collapse from '@material-ui/core/Collapse';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Typography from '@material-ui/core/Typography';  //h1, p replacement Tag
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
 
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
-import Avatar from '@material-ui/core/Avatar';
 
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
 import MenuItem from '@material-ui/core/MenuItem';
-
-import { TextField } from '@material-ui/core';
+import Select from '@material-ui/core/Select';
+import { ListSubheader, TextField } from '@material-ui/core';
 
 // ==================== MUI Icons ====================
 import ArrowBackIosIcon from '@material-ui/icons/ArrowBackIos';
@@ -59,22 +64,22 @@ import SaveIcon from '@material-ui/icons/Save';
 
 // ==================== MUI Styles ===================
 
-    const useStyles = makeStyles( (theme) =>    //Notice the hook useStyles
-    ({
-        root: {
-            flexGrow: 1,     // CSS determined this way, flexbox properties
-            height: '100%'
-        },
-        rootGrid: {
-            height: '100%'
-        }
-    }));
+const useStyles = makeStyles((theme) =>    //Notice the hook useStyles
+({
+    root: {
+        flexGrow: 1,     // CSS determined this way, flexbox properties
+        height: '100%'
+    },
+    rootGrid: {
+        height: '100%'
+    }
+}));
 
 
 // ================= Static Variables ================
 const backLink = "/administration/users/management";
 const nameRegex = /^[a-zA-Z]+$/;
-const phoneRegex =/^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/;
+const phoneRegex = /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/;
 const wordsRegex = /^.+$/
 const streetRegex = /^(\d{1,})[a-zA-Z0-9\s]+(\.)?$/;    //WIP currently accepts number only
 const postalCodeRegex = /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d$/i;
@@ -86,177 +91,373 @@ const postalCodeRegex = /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-
 
 const UserNotesTab = (props) => { // Notice the arrow function... regular function()  works too
 
-    // Variables ===
+    // Style variable declaration
+    const classes = useStyles();
 
-        // Style variable declaration
-        const classes = useStyles();
+    // Declaration of Stateful Variables ===
+    const { appState, userID, setParentAlert, getParentInfo, panelId, panelIndex, userOriginal } = props;
 
-        // Declaration of Stateful Variables ===
-        const { appState, userID, setParentAlert, getParentInfo, panelId, panelIndex, userOriginal } = props;
+    // Variables for Assigned user (select box)
+    const [userData, setUserData] = useState([]);
+    const [value, setValue] = useState([]);
 
-        const [userEdit, setUserEdit] = useState(null);
+    // Variables to save/add note
+    const [note, setNote] = useState("");
+    const [userEdit, setUserEdit] = useState(null);
 
-    // Functions ===
+    // Variables to fetch message list
+    const [notesList, setNoteList] = useState([]);
 
-        const resetInformationProperties = useCallback((event) => 
-        {
-            if(userOriginal)
-            {
-                setUserEdit(
-                    {
-                        ...userOriginal,
+    // Adds note to database
+    const saveNote = useCallback((event) => {
+        let noteData = {
+            'senderId': userID,
+            'receiverId': value,
+            'message': note
+        };
+        console.log(noteData);
+        if (userID != null) {
+            post("notes/", appState.token, noteData, (error, res) => {
+                if (error) {
+                    setParentAlert(new AlertType('Unable to save note. Please refresh and try again.', "error"));
+                }
+                else {
+                    if (res.status === 200 || res.status === 304) {
+                        setParentAlert(new AlertType('Successfully saved note.', "success"));
+                        setNote("");
+                        setValue("");
                     }
-                );
-            }
+                    else {
+                        setParentAlert(new AlertType('Unable to save note. Please refresh and try again.', "error"));
+                    }
+                }
+            });
+        }
+    }, [setNote, note]);
 
-        }, [ userOriginal ]);
+    // Resets notes Textbox 
+    const resetNote = useCallback((event) => {
+        setNote("");
+        setValue([]);
+    }, []);
+
+    // Fetch assigned users to send notes
+    const getUsers = useCallback((event) => {
+        if (userID != null) {
+            get("users/getAllUsers/" + userID, appState.token, (err, res) => {
+
+                var arr = [];                
+                for (var i = 0; i < res.data.user.patients.length; i++) {
+                    var obj = {
+                        "name": res.data.user.patients[i].info.name,
+                        "id": res.data.user.patients[i]._id
+                    }
+                    arr.push(obj);
+                }
+
+                for (var i = 0; i < res.data.user.admins.length; i++) {
+                    var obj = {
+                        "name": res.data.user.admins[i].info.name,
+                        "id": res.data.user.admins[i]._id
+                    }
+                    arr.push(obj);
+                }
+
+                for (var i = 0; i < res.data.user.coordinators.length; i++) {
+                    var obj = {
+                        "name": res.data.user.coordinators[i].info.name,
+                        "id": res.data.user.coordinators[i]._id
+                    }
+                    arr.push(obj);
+                }
+
+                for (var i = 0; i < res.data.user.volunteers.length; i++) {
+                    var obj = {
+                        "name": res.data.user.volunteers[i].info.name,
+                        "id": res.data.user.volunteers[i]._id
+                    }
+                    arr.push(obj);
+                }
+
+                
+                setUserData(arr);
+            });
+        }
+    }, []);
+
+    // Fetches the dropdown box value 
+    const userSelectHandler = useCallback((event) => {
+        setValue(event.target.value);
+    }, [setValue]);
+
+    // Update note status when read
+    const handleNoteStatus = useCallback((noteId) => {
+        for (var i = 0; i < notesList.length; i++) {
+            if (noteId === notesList[i].id)
+                notesList[i].id.status = "read";
+                setParentAlert(new AlertType('Note read. ', "success"));       
+        }
+        put("notes/", appState.token, { 'noteID': noteId }, (err, res) => {
+            // console.log(res);
+        });
+    }, [setValue, value]);
+
+    // ISO date to mmm-dd-yyyy
+    const getFormattedDate = (d) => {
+        var date = new Date(d);
+        var dateTime = getMonthName(date.getMonth()) + ' ' + date.getDate() + ' , ' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getUTCMinutes();
+        return dateTime;
+    }
+
+    // Formatting month for date
+    const getMonthName = (m) => {
+        if (m === 0)
+            return "JAN";
+        if (m === 1)
+            return "FEB";
+        if (m === 2)
+            return "MAR";
+        if (m === 3)
+            return "APR";
+        if (m === 4)
+            return "MAY";
+        if (m === 5)
+            return "JUN";
+        if (m === 6)
+            return "JUL";
+        if (m === 7)
+            return "AUG";
+        if (m === 8)
+            return "SEP";
+        if (m === 9)
+            return "OCT";
+        if (m === 10)
+            return "NOV";
+        if (m === 11)
+            return "DEC";
+    }
+
+    // Fetch Notes list of current user
+    const getNotes = useCallback((event) => {
+        if (userID != null) {
+            get("notes/" + userID, appState.token, (err, res) => {
+                if(err == null ) {
+                    for (var i = 0; i < res.data.foundNotes.length; i++) {
+                        var obj = res.data.foundNotes[i];
+                        obj.createdAt = getFormattedDate(obj.createdAt);
+                        notesList.push(obj);                    
+                    } 
+                } 
+            });
+        }
+    }, [appState]);
+
+    // List the notes received
+    const renderRow = notesList.map((note) => {
+        var id = note._id;
+        return (
+            <>
+                <div>
+                    <Card variant="outlined" style={{marginTop: 15}}>
+                        <List subheader={
+                            <ListSubheader component="div" id="nested-list-subheader">
+                                {note.senderId.info.name}
+                            </ListSubheader>
+                        }>
+                            <ListItem key={note._id}>
+                                <ListItemText
+                                    primary={note.message}
+                                    secondary={note.createdAt}
+                                />
+                                <ListItemSecondaryAction>
+                                    <IconButton edge="end" aria-label="edit" size="small"
+                                        onClick={() => { handleNoteStatus(id); }}
+                                    >
+                                        {note.status == "unread" ? (<MarkunreadIcon />) : (<MailOutlineIcon />)}
+                                    </IconButton>
+                                </ListItemSecondaryAction>
+                            </ListItem>
+                        </List>
+                    </Card>
+                </div>
+            </>
+        );
+    });
 
     // Hooks ===
 
-        useEffect( () => 
-        {
-            setUserEdit(userOriginal);
+    useEffect(() => {
+        setUserEdit(userOriginal);
+    }, [userOriginal]);
 
-        }, [ userOriginal ]);
-
-        useEffect( () =>
-        {
-            if(panelIndex !== panelId)
-            {
-                resetInformationProperties();
-            }
-
-        }, [ panelIndex, panelId, resetInformationProperties]);
+    useEffect( () => {
+        getUsers();
+        if (notesList.length == 0)
+            getNotes();
+    }, [value, setValue]);
 
     // Render Section ===
-
-        return (
-            userOriginal != null? (
-                <div
-                    role="tabpanel"
-                    hidden={panelIndex !== panelId}
-                    id={`Panel-${panelId}`}
-                >
-                    <Collapse in={panelIndex == panelId? true : false}>
-                        {userEdit? (
-                            <Grid
-                                container
-                                direction="column"
-                                justifyContent="flex-start"
-                                alignItems="stretch"
-                                spacing={1}
-                            >
-                                <Grid item xs={12} container direction="row" justifyContent="space-between" alignItems="stretch" spacing={1}>
-                                    <Grid item>
-                                        <Typography variant="h6" component="h6">
-                                            My Notes
-                                        </Typography>
-                                        <Divider />
-                                    </Grid>
-                                    <Grid item xs>
-                                        <Box mx={3} my={1} boxShadow={0}>
-                                            <Grid container direction="row" justifyContent="flex-start" alignItems="center" spacing={1}>
-                                                {/* <Grid item>
-                                                    <Tooltip
-                                                        placement="bottom"
-                                                        title="Unlock editable fields"
-                                                    >
-                                                        <IconButton
-                                                            size="small"
-                                                            color="primary"
-                                                            onClick={() => { editablePropertiesHandler(); }}
-                                                        >
-                                                            {editable? (
-                                                                <LockOpenIcon />
-                                                            ) : (
-                                                                <LockIcon />
-                                                            )}
-                                                        </IconButton>
-                                                    </Tooltip> 
-                                                </Grid>
-                                                <Grid item
-                                                    hidden={!editable}
+    return (
+        userOriginal != null ? (
+            <div
+                role="tabpanel"
+                hidden={panelIndex !== panelId}
+                id={`Panel-${panelId}`}
+            >
+                <Collapse in={panelIndex == panelId ? true : false}>
+                    {userEdit ? (
+                        <Grid
+                            container
+                            direction="column"
+                            justifyContent="flex-start"
+                            alignItems="stretch"
+                            spacing={1}
+                        >
+                            <Grid item xs={12} container direction="row" justifyContent="space-between" alignItems="stretch" spacing={1}>
+                                <Grid item>
+                                    <Typography variant="h6" component="h6">
+                                        Add Note
+                                    </Typography>
+                                    <Divider />
+                                </Grid>
+                                <Grid item>
+                                    <Box boxShadow={0}>
+                                        <Grid container direction="row" justifyContent="flex-start" alignItems="center" spacing={1}>
+                                            <Grid item>
+                                                <Tooltip
+                                                    placement="left"
+                                                    title="This allows sending notes."
                                                 >
-                                                    <Collapse in={editable}>
-                                                        <ButtonGroup color="primary">
-                                                            <Button 
-                                                                size="small" 
-                                                                variant="outlined" 
-                                                                color="default"
-                                                                startIcon={<RefreshIcon />}
-                                                                onClick={() => { resetInformationProperties(); }}
-                                                            >
-                                                                Reset
-                                                            </Button>
-                                                            <Button 
-                                                                size="small" 
-                                                                variant="outlined" 
-                                                                color="secondary"
-                                                                disabled={!changedInformationProperties}
-                                                                startIcon={<SaveIcon />}
-                                                                onClick={() => { saveInformationProperties(); }}
-                                                            >
-                                                                Save
-                                                            </Button> 
-                                                        </ButtonGroup>
-                                                    </Collapse>
-                                                </Grid>
-                                                <Grid item
-                                                    // hidden={!editable}
-                                                >
-                                                    <Collapse in={changedInformationProperties}>
-                                                        <Typography variant="caption" color="textSecondary" align="left" gutterBottom>
-                                                            { changedInformationProperties? "Changes have been made." : "" }
-                                                        </Typography>
-                                                    </Collapse>
-                                                </Grid> */}
+                                                    <IconButton>
+                                                        <HelpOutlineIcon />
+                                                    </IconButton>
+                                                </Tooltip>
                                             </Grid>
-                                        </Box>
-                                    </Grid>
-                                    <Grid item>
-                                        <Tooltip
-                                            placement="left"
-                                            title="This page views user information."
-                                        >
-                                            <IconButton>
-                                                <HelpOutlineIcon />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Grid>
+                                        </Grid>
+                                    </Box>
+                                </Grid>
+                                <Grid item xs>
+                                    <Box mx={3} my={1} boxShadow={0}>
+                                        <Grid container direction="row" justifyContent="flex-start" alignItems="center" spacing={1}>
+                                            <Grid item>
+                                                <Button
+                                                    size="small"
+                                                    variant="outlined"
+                                                    color="default"
+                                                    startIcon={<RefreshIcon />}
+                                                    onClick={() => { resetNote(); }}
+                                                >
+                                                    Reset
+                                                </Button>
+                                                <Button
+                                                    size="small"
+                                                    variant="outlined"
+                                                    color="secondary"
+                                                    startIcon={<SaveIcon />}
+                                                    onClick={() => saveNote()}
+                                                >
+                                                    Save
+                                                </Button>
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Box mx={3} my={1} boxShadow={0}>
+                                        <Grid container direction="row" justifyContent="flex-start" alignItems="center" spacing={1}>
+                                            <Grid item lg={8}>
+                                                <FormControl fullWidth variant="filled" size="small" className={classes.formControl}>
+                                                    <InputLabel id="select-label-Member">Member</InputLabel>
+                                                    <Select
+                                                        className={classes.selectEmpty}
+                                                        labelId="select-label-Member"
+                                                        id="select-user"
+                                                        fullWidth
+                                                        defaultValue=""
+                                                        disabled={userData ? false : true}
+                                                        onChange={(event) => { userSelectHandler(event); }}
+                                                    >
+                                                        {userData.map((item, index) => {
+                                                            return (
+                                                                <MenuItem key={item.id} value={item.id}>
+                                                                    <em>{item.name}</em>
+                                                                </MenuItem>
+                                                            )
+                                                        })}
+                                                    </Select>
+                                                </FormControl>
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <Box mx={3} my={1} boxShadow={0}>
+                                        <Grid container direction="row" justifyContent="flex-start" alignItems="center" spacing={1}>
+                                            <Grid item lg={8}>
+                                                <TextField id="Note" multiline rows={5} variant="outlined" placeholder="Write your notes here..." fullWidth label="Note" onChange={(event) => { setNote(event.target.value); }}
+                                                    value={note}
+                                                />
+                                            </Grid>
+                                        </Grid>
+                                    </Box>
                                 </Grid>
                             </Grid>
-                        ) : (
-                            <Grid
-                                container
-                                direction="column"
-                                justifyContent="flex-start"
-                                alignItems="stretch"
-                                spacing={1}
-                            >
-                                <Grid item xs={12} container direction="row" justifyContent="center" alignItems="stretch" spacing={1}>
-                                    <Grid item>
-                                        <Box mx={1} my={1} boxShadow={0}>
-                                            <CircularProgress />
-                                        </Box>
-                                    </Grid>
+                            <Grid item xs={12} container direction="row" justifyContent="space-between" alignItems="stretch" spacing={1}>
+                                <Grid item>
+                                    <Typography variant="h6" component="h6">
+                                        My Notes
+                                    </Typography>
+                                    <Divider />
+                                </Grid>
+                                <Grid item>
+                                    <Tooltip
+                                        placement="left"
+                                        title="This allows all notes received for current user"
+                                    >
+                                        <IconButton>
+                                            <HelpOutlineIcon />
+                                        </IconButton>
+                                    </Tooltip>
                                 </Grid>
                             </Grid>
-                        )}
-                    </Collapse>
-                </div>   
-            ) : (
-                <>
-                </>
-                // <Typography variant="h6" color="inherit" align="center" gutterBottom>
-                //     Not Authorized. Please refresh and try again.
-                // </Typography>
-            )
-            
-        );
+                            
+                            <Grid item >
+                                {
+                                    notesList.length != 0 ? renderRow : "There are no notes available for you!"
+                                }
+                            </Grid>
+                        </Grid>
+                    ) : (
+                        <Grid
+                            container
+                            direction="column"
+                            justifyContent="flex-start"
+                            alignItems="stretch"
+                            spacing={1}
+                        >
+                            <Grid item xs={12} container direction="row" justifyContent="center" alignItems="stretch" spacing={1}>
+                                <Grid item>
+                                    <Box mx={1} my={1} boxShadow={0}>
+                                        <CircularProgress />
+                                    </Box>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    )}
+                </Collapse>
+            </div>
+        ) : (
+            <>
+            </>
+            // <Typography variant="h6" color="inherit" align="center" gutterBottom>
+            //     Not Authorized. Please refresh and try again.
+            // </Typography>
+        )
+    );
 }
 
 // ======================== Component PropType Check ========================
-UserNotesTab.propTypes = 
+UserNotesTab.propTypes =
 {
     // You can specify the props types in object style with ___.PropTypes.string.isRequired etc...
     appState: PropTypes.object.isRequired,
@@ -268,12 +469,12 @@ UserNotesTab.propTypes =
     userOriginal: PropTypes.object
 }
 
-UserNotesTab.defaultProps = 
+UserNotesTab.defaultProps =
 {
     appState: {},
     userID: null,
-    setParentAlert: () => {},
-    getParentInfo: () => {},
+    setParentAlert: () => { },
+    getParentInfo: () => { },
     panelId: null,
     panelIndex: null,
     userOriginal: {}

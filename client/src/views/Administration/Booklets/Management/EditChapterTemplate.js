@@ -15,7 +15,7 @@ import AlertMessage from '../../../../components/AlertMessage';
 // import 'nouislider/dist/nouislider.css'; This is the newer 15.5.0 version
 // import "nouislider/distribute/nouislider.css"; This is the old 9.2.0 version
 
-import 'nouislider/dist/nouislider.css';
+import "nouislider/distribute/nouislider.css";
 import '../../../../css/nouislider.fix.css';
 
 import "bootstrap-slider/dist/css/bootstrap-slider.css";

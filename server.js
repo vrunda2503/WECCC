@@ -34,13 +34,16 @@ const config = require('./config/config');
 const path = require("path");
 
 const userRoutes = require("./routes/userRoutes");
-const surveyRoutes = require('./routes/surveyRoutes');
-const memberSurveyRoutes = require('./routes/memberSurveyRoutes');
 const facilityRoutes = require('./routes/facilityRoutes');
 const stickyNoteRoutes = require('./routes/stickyNoteRoutes');
 const addressRoutes = require('./routes/addressRoutes');
+const surveyRoutes = require('./routes/surveyRoutes');
+const memberSurveyRoutes = require('./routes/memberSurveyRoutes');
 const collectionRoutes = require('./routes/collectionRoutes');
+const memberCollectionRoutes = require('./routes/memberCollectionRoutes');
+const projectRoutes = require('./routes/projectRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const noteRoutes = require('./routes/noteRoutes');
 
 // ============================================
 // Mongoose Setup
@@ -83,15 +86,17 @@ app.use((req, res, next) =>
 // ============================================
 // API Routes
 // ============================================
-app.use("/api/users", userRoutes);
-app.use("/api/surveys", surveyRoutes);
-app.use("/api/membersurveys", memberSurveyRoutes);
 app.use("/api/facilities", facilityRoutes);
 app.use("/api/stickynotes", stickyNoteRoutes);
 app.use("/api/addresses", addressRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/surveys", surveyRoutes);
+app.use("/api/membersurveys", memberSurveyRoutes);
 app.use("/api/collections", collectionRoutes);
+app.use("/api/membercollections", memberCollectionRoutes);
+app.use("/api/projects", projectRoutes);
 app.use("/api/reports", reportRoutes);
-
+app.use("/api/notes", noteRoutes);
 
 // ============================================
 // Heroku Addition

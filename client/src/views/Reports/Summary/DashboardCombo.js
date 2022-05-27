@@ -9,10 +9,10 @@ export default class DashboardCombo extends Component {
         var sum = 0;
         var validScores = 0;
 
-        //loneliness (arr[5]) is left out of average calculation since it is not base 10
-        for (var i=0; i<4; i++){
+        for (var i=0; i<5; i++){
             var score = scoreArray[i];
             if (score < 0){ //reverse scored
+				score = score * -1;
                 score = 100 - score;
             }
             if (this.isComplete(score)){

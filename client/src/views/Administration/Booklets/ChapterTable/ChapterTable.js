@@ -235,18 +235,19 @@ export default function ChapterTable(props) {
                                             </TableCell>
 
                                             <TableCell component="th" id={labelId} scope="row" padding="none">
-                                                <Typography color="textPrimary" variant="subtitle2" style={{display: 'inline-block'}}>
-                                                    {item.name}
+                                                <Typography color="textPrimary" variant="subtitle2" noWrap style={{display: 'inline-block', width: '360px'}}>
+                                                    {isTemplates? item.name : item.surveyTemplate? item.surveyTemplate.name : ""}
+                                                </Typography>
+                                            </TableCell>
+
+                                            <TableCell align="left" padding="none">
+                                                <Typography color="textPrimary" variant="subtitle2" noWrap style={{display: 'inline-block', width: '120px'}}>
+                                                    {item._id}
                                                 </Typography>
                                             </TableCell>
 
                                             {isTemplates? (
                                                 <>
-                                                    <TableCell align="left" padding="none">
-                                                        <Typography color="primary" variant="body2" style={{display: 'inline-block', width: '120px', color: item.isPublic? 'green' : 'red' }}>
-                                                            {item.isPublic? "true" : "false"}
-                                                        </Typography>
-                                                    </TableCell>
 
                                                     <TableCell align="right">
                                                         <Typography color="primary" variant="body2" style={{display: 'inline-block', width: '120px'}}>
@@ -269,33 +270,39 @@ export default function ChapterTable(props) {
                                             ) : (
                                                 <>
 
-                                                    <TableCell align="left">
-                                                        <Typography color="primary" variant="body2" style={{display: 'inline-block', width: '120px'}}>
-                                                            {item.completeStatus}
+                                                    <TableCell align="left" padding="none">
+                                                        <Typography color="primary" variant="body2" noWrap style={{display: 'inline-block', width: '120px'}}>
+                                                            {item.completeness}
                                                         </Typography>
                                                     </TableCell>
 
-                                                    <TableCell align="left" padding="none">
+                                                    {/* <TableCell align="left" padding="none">
                                                         <Typography color="primary" variant="body2" style={{display: 'inline-block', width: '120px', color: item.approved? 'green' : 'red' }}>
                                                             {item.approved? "true" : "false"}
                                                         </Typography>
-                                                    </TableCell>
+                                                    </TableCell> */}
 
                                                     <TableCell align="left" padding="none">
-                                                        <Typography color="textPrimary" variant="body2" style={{display: 'inline-block', width: '120px'}}>
-                                                            {item.patientName}
+                                                        <Typography color="textPrimary" variant="body2" noWrap style={{display: 'inline-block', width: '120px'}}>
+                                                            {item.member? item.member.info? item.member.info.name : "" : ""}
                                                         </Typography>
                                                     </TableCell>
 
                                                     <TableCell align="left" padding="none">
-                                                        <Typography color="textPrimary" variant="body2" style={{display: 'inline-block', width: '120px'}}>
-                                                            {item.patientId}
+                                                        <Typography color="textPrimary" variant="body2" noWrap style={{display: 'inline-block', width: '120px'}}>
+                                                            {item.member? item.member._id : ""}
                                                         </Typography>
                                                     </TableCell>
 
                                                     <TableCell align="left" padding="none">
-                                                        <Typography color="textPrimary" variant="body2" style={{display: 'inline-block', width: '120px'}}>
-                                                            {item.collectionId}
+                                                        <Typography color="textPrimary" variant="body2" noWrap style={{display: 'inline-block', width: '120px'}}>
+                                                            {item.memberCollection? item.memberCollection : "N/A"}
+                                                        </Typography>
+                                                    </TableCell>
+
+                                                    <TableCell align="left" padding="none">
+                                                        <Typography color="textPrimary" variant="body2" noWrap style={{display: 'inline-block', width: '120px'}}>
+                                                            {item.surveyTemplate? item.surveyTemplate._id : ""}
                                                         </Typography>
                                                     </TableCell>
 

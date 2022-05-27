@@ -58,7 +58,15 @@ import RefreshIcon from '@material-ui/icons/Refresh';
 
 
 // ================= Static Variables ================
-const selectFilterOptions = [ { key: "Name", value: "name", display: "Name"}, { key: "CollectionId", value: "collectionId", display: "Collection ID"}, { key: "PatientName", value: "patientName", display: "Patient Name"}, { key: "PatientId", value: "patientId", display: "Patient ID"} ]
+
+const selectFilterOptionsSurvey = [ { key: "SurveyName", value: "surveyName", display: "Name"}, 
+{ key: "SurveyId", value: "surveyId", display: "ID"} ];
+
+const selectFilterOptionsMemberSurvey = [ { key: "SurveyName", value: "surveyName", display: "Name"}, { key: "MemberSurveyId", value: "memberSurveyId", display: "ID"},
+{ key: "Completeness", value: "completeness", display: "Completeness"}, 
+{ key: "MemberCollectionId", value: "memberCollectionId", display: "Member Collection ID"},
+{ key: "MemberName", value: "memberName", display: "Member Name"}, 
+{ key: "MemberId", value: "memberId", display: "Member ID"} ];
 
 // ================= Static Functions ================
 
@@ -81,7 +89,7 @@ const ManagementControlPanel = (props) => { // Notice the arrow function... regu
             setCreateChapterTemplateDialog,
             setCreateChapterUserDialog } = props;
 
-        const [selectSearchFilterOption, setSelectSearchFilterOption ] = useState(selectFilterOptions[0].value);
+        const [selectSearchFilterOption, setSelectSearchFilterOption ] = useState(selectFilterOptionsMemberSurvey[0].value);
         const [searchFilter, setSearchFilter] = useState("");
 
     // Functions ===
@@ -118,13 +126,13 @@ const ManagementControlPanel = (props) => { // Notice the arrow function... regu
         const chapterTemplatesButtonHandler = useCallback(() =>
         {
             setIsTemplates(true);
-            setSelectSearchFilterOption(selectFilterOptions[0].value);
+            setSelectSearchFilterOption(selectFilterOptionsMemberSurvey[0].value);
         }, [ setIsTemplates ]);
 
         const userChaptersButtonHandler = useCallback(() =>
         {
             setIsTemplates(false);
-            setSelectSearchFilterOption(selectFilterOptions[0].value);
+            setSelectSearchFilterOption(selectFilterOptionsMemberSurvey[0].value);
         }, [ setIsTemplates ]);
 
         const selectSearchHandler = useCallback((event) =>
@@ -142,7 +150,7 @@ const ManagementControlPanel = (props) => { // Notice the arrow function... regu
             {
                 switch(selectSearchFilterOption)
                 {
-                    case "name":
+                    case "surveyName":
 
                         if(item.name.toUpperCase().indexOf(tempFilter) > -1)
                         {
@@ -151,27 +159,54 @@ const ManagementControlPanel = (props) => { // Notice the arrow function... regu
 
                         break;
 
-                    case "collectionId":
+                    case "surveyId":
 
-                            if(item.collectionId.toUpperCase().indexOf(tempFilter) > -1)
-                            {
-                                tempArray.push(item);
-                            }
-    
-                            break;
-
-                    case "patientId":
-
-                        if(item.patientId.toUpperCase().indexOf(tempFilter) > -1)
+                        if(item._id.toUpperCase().indexOf(tempFilter) > -1)
                         {
                             tempArray.push(item);
                         }
 
                         break;
 
-                    case "patientName":
+                    case "memberSurveyId":
 
-                        if(item.patientName.toUpperCase().indexOf(tempFilter) > -1)
+                        if(item._id.toUpperCase().indexOf(tempFilter) > -1)
+                        {
+                            tempArray.push(item);
+                        }
+
+                        break;
+
+                    case "completeness":
+
+                        if(item.completeness.toUpperCase().indexOf(tempFilter) > -1)
+                        {
+                            tempArray.push(item);
+                        }
+
+                        break;
+
+                    case "memberCollectionId":
+
+                            if(item.memberCollection._id.toUpperCase().indexOf(tempFilter) > -1)
+                            {
+                                tempArray.push(item);
+                            }
+    
+                            break;
+
+                    case "memberName":
+
+                        if(item.member.info.name.toUpperCase().indexOf(tempFilter) > -1)
+                        {
+                            tempArray.push(item);
+                        }
+
+                        break;
+
+                    case "memberId":
+
+                        if(item.member._id.toUpperCase().indexOf(tempFilter) > -1)
                         {
                             tempArray.push(item);
                         }
@@ -196,6 +231,20 @@ const ManagementControlPanel = (props) => { // Notice the arrow function... regu
             setSearchFilter("");
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [ dataList ]);
+
+        useEffect( () =>
+        {
+            if(isTemplates)
+            {
+                setSelectSearchFilterOption(selectFilterOptionsSurvey[0].value)
+            }
+            else
+            {
+                setSelectSearchFilterOption(selectFilterOptionsMemberSurvey[0].value)
+            }
+            
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [ isTemplates ]);
 
         useEffect( () =>
         {
@@ -287,7 +336,7 @@ const ManagementControlPanel = (props) => { // Notice the arrow function... regu
                                                 <Grid item>
                                                     <Tooltip
                                                         placement="bottom"
-                                                        title="Start User Chapter"
+                                                        title="Start Member Chapter"
                                                     >
                                                         <Button 
                                                             size="small" 
@@ -297,7 +346,7 @@ const ManagementControlPanel = (props) => { // Notice the arrow function... regu
                                                             startIcon={<AddBoxOutlinedIcon />}
                                                             onClick={() => { createUserHandler(); }}
                                                         >
-                                                            Start User Chapter
+                                                            Start Member Chapter
                                                         </Button>
                                                     </Tooltip> 
                                                 </Grid>
@@ -336,7 +385,7 @@ const ManagementControlPanel = (props) => { // Notice the arrow function... regu
                                                 />
                                             </Grid>
                                             <Grid item>
-                                                <FormControl id="search-filter-select-label" variant="filled" size="small" style={{minWidth: 140}} disabled={isTemplates}>
+                                                <FormControl id="search-filter-select-label" variant="filled" size="small" style={{minWidth: 140}}>
                                                     <InputLabel>
                                                         Search Filter
                                                     </InputLabel>
@@ -346,14 +395,26 @@ const ManagementControlPanel = (props) => { // Notice the arrow function... regu
                                                         value={selectSearchFilterOption}
                                                         onChange={(event) => { selectSearchHandler(event); } }
                                                     >
-                                                        {selectFilterOptions.map( item => 
-                                                        {
-                                                            return(
-                                                                <MenuItem key={item.key} value={item.value}>
-                                                                    <em>{item.display}</em>
-                                                                </MenuItem>  
-                                                            )
-                                                        })}
+                                                        {isTemplates? (
+                                                            selectFilterOptionsSurvey.map( item => 
+                                                            {
+                                                                return(
+                                                                    <MenuItem key={item.key} value={item.value}>
+                                                                        <em>{item.display}</em>
+                                                                    </MenuItem>  
+                                                                )
+                                                            })
+                                                        ) : (
+                                                            selectFilterOptionsMemberSurvey.map( item => 
+                                                            {
+                                                                return(
+                                                                    <MenuItem key={item.key} value={item.value}>
+                                                                        <em>{item.display}</em>
+                                                                    </MenuItem>  
+                                                                )
+                                                            })
+                                                        )}
+                                                        
                                                     </Select>
                                                 </FormControl>
                                             </Grid>

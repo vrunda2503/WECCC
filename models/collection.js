@@ -11,15 +11,22 @@ const mongoose = require('mongoose');
 
 const collectionSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
-    patientId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+    name: {
+        type: String, 
+        required: true,
+        unique: true
     },
-    chapterTemplates: [
-        { type: mongoose.Schema.Types.ObjectId, ref: 'Survey' }
+    projectList: [
+        { type: mongoose.Schema.Types.ObjectId, ref: 'Project' }
     ],
-    memberChapters: [
-        { type: mongoose.Schema.Types.ObjectId, ref: 'MemberSurvey' }
+    memberCollectionList: [
+        { type: mongoose.Schema.Types.ObjectId, ref: 'MemberCollection' }
+    ],
+    memberList: [
+        { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    ],
+    surveyList: [
+        { type: mongoose.Schema.Types.ObjectId, ref: 'Survey' }
     ],
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,

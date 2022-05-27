@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';                     //Development Package to
 // ==================== Components ==================
 
 // ==================== Helpers =====================
-import AlertType from '../../../../../helpers/models/AlertType'
+import AlertType from '../../../../../helpers/models/AlertType';
 
 // ==================== MUI =========================
 import { makeStyles } from '@material-ui/core/styles';  // withStyles can be used for classes and functional componenents but makeStyle is designed for new React with hooks
@@ -74,7 +74,7 @@ const UsersManagementControlPanel = (props) => { // Notice the arrow function...
         const classes = useStyles();
 
         // Declaration of Stateful Variables ===
-        const {  mode, setParentAlert,
+        const {  appState, mode, setParentAlert,
             isDense, setIsDense,
             dataList, getParentData,
             setSearchFilteredDataList,
@@ -82,7 +82,7 @@ const UsersManagementControlPanel = (props) => { // Notice the arrow function...
 
         const [selectSearchFilterOption, setSelectSearchFilterOption ] = useState(selectFilterOptions[0].value);
         const [searchFilter, setSearchFilter] = useState("");
-
+        
     // Functions ===
 
         const pullHandler = useCallback(() =>
@@ -173,7 +173,7 @@ const UsersManagementControlPanel = (props) => { // Notice the arrow function...
             setSearchFilter(event.target.value);
             setSearchFilteredDataList(tempArray);
         }, [ dataList, setSearchFilteredDataList, selectSearchFilterOption ]);
-
+        // console.log(dataList);
 
     // Hooks ===
 
@@ -204,6 +204,7 @@ const UsersManagementControlPanel = (props) => { // Notice the arrow function...
                         justifyContent="flex-start"
                         alignItems="stretch"
                         spacing={1}
+                        appState={appState}
                     >
                         <Grid item xs={12} container direction="row" justifyContent="space-between" alignItems="stretch" spacing={1}>
                             <Grid item>
@@ -252,6 +253,8 @@ const UsersManagementControlPanel = (props) => { // Notice the arrow function...
                                                 </Tooltip> 
                                             )}
                                         </Grid>
+                                       
+                                        {appState.role != "Volunteer"? (
                                         <Grid item>
                                             <Tooltip
                                                 placement="bottom"
@@ -264,10 +267,14 @@ const UsersManagementControlPanel = (props) => { // Notice the arrow function...
                                                     startIcon={<SupervisorAccountIcon />}
                                                     onClick={() => { assignUserHandler(); }}
                                                 >
-                                                    Assign User
+                                                    Assign User 
                                                 </Button>
                                             </Tooltip> 
                                         </Grid>
+                                        ) : (
+                                            <>
+                                            </>
+                                        )} 
                                     </Grid>
                                 </Box>
                             </Grid>
@@ -355,6 +362,7 @@ const UsersManagementControlPanel = (props) => { // Notice the arrow function...
 UsersManagementControlPanel.propTypes = 
 {
     // You can specify the props types in object style with ___.PropTypes.string.isRequired etc...
+    appState: PropTypes.object.isRequired,
     mode: PropTypes.string,
     setParentAlert: PropTypes.func.isRequired,
     isDense: PropTypes.bool.isRequired,
@@ -369,6 +377,7 @@ UsersManagementControlPanel.propTypes =
 
 UsersManagementControlPanel.defaultProps = 
 {
+    appState: {},
     mode: null,
     setParentAlert: () => {},
     setIsDense: () => {},

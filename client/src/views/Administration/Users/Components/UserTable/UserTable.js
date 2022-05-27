@@ -14,6 +14,9 @@ import UserTableToolbar from './UserTableToolbar';
 
 // ==================== Helpers ====================
 
+// ==================== Components ==================
+import AlertType from '../../../../../helpers/models/AlertType';
+
 // ==================== MUI ====================
 import Box from '@material-ui/core/Box';
 import Table from '@material-ui/core/Table';
@@ -76,6 +79,8 @@ import { makeStyles } from '@material-ui/core/styles';
 export default function UserTable(props) {
 
   // Variables ===
+         // Alert variable
+         const [alert, setAlert] = useState(new AlertType());
 
          // Style variable declaration
         const classes = useStyles();
@@ -187,6 +192,7 @@ export default function UserTable(props) {
                 <Paper className={classes.paper}>
                     <UserTableToolbar
                         appState={appState}
+                        setParentAlert={setAlert}
                         selectedDataItemsList={selectedDataItemsList} 
                         setParentDeleteUserDialog={setParentDeleteUserDialog} 
                         // setParentExportChapterDialog={setParentExportChapterDialog}

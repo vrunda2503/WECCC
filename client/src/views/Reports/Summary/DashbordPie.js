@@ -6,8 +6,9 @@ export default class DashboardPie extends Component {
 	chartRef = React.createRef();
 
 	findColour = (score) => {
-		if (score < 0){
-			score = 100 - score; //reverse scoring
+		if (score < 0){	//identity and handle reverse scoring reflected in colour gauge
+			score = score * - 1;
+			score = 100 - score;
 		}
 
 		if (score == 0){
@@ -48,7 +49,7 @@ export default class DashboardPie extends Component {
 
 			//set score numeric value or incomplete
 			health_zero: this.isComplete(this.props.data[0]) ? this.props.data[0] : "Incomplete",
-			mentalHealth: this.isComplete(this.props.data[1]) ? this.props.data[1] : "Incomplete",
+			mentalHealth: this.isComplete((this.props.data[1])) ? this.props.data[1] * -1 : "Incomplete", // multiply -1 to display without reverse score flag
 			wellBeing: this.isComplete(this.props.data[2]) ? this.props.data[2] : "Incomplete",
 			lifeSatisfaction: this.isComplete(this.props.data[3]) ? this.props.data[3] : "Incomplete",
 			loneliness: this.props.data[4],

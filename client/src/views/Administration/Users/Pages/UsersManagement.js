@@ -272,6 +272,7 @@ const UsersManagement = (props) => { // Notice the arrow function... regular fun
                                     {dataList && searchFilteredDataList && selectedDataItemsList? (
                                         <Grid item xs={12}>
                                             <UsersManagementControlPanel
+                                                appState= {appState}
                                                 mode={mode}
                                                 isDense={isDense}
                                                 setIsDense={setIsDense}

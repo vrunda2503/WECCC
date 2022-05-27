@@ -12,7 +12,7 @@ import CollectionTable from '../../../Collections/Components/CollectionTable/Col
 import CollectionsManagementControlPanel from '../../../Collections/Components/CollectionsManagementControlPanel/CollectionsManagementControlPanel';
 
 import ExportCollectionDialog from '../../../Collections/Dialog/ExportCollectionDialog';
-import CreateCollectionDialog from '../../../Collections/Dialog/CreateCollectionDialog';
+import CreateCollectionTemplateDialog from '../../../Collections/Dialog/CreateCollectionTemplateDialog';
 import DeleteCollectionDialog from '../../../Collections/Dialog/DeleteCollectionDialog';
 
 
@@ -296,7 +296,7 @@ const UserCollectionsTab = (props) => { // Notice the arrow function... regular 
                             </Grid>
                         )}
                     </Collapse>
-                    <CreateCollectionDialog
+                    <CreateCollectionTemplateDialog
                         createCollectionDialog={createCollectionDialog}
                         setCreateCollectionDialog={setCreateCollectionDialog}
                         createCollectionDialogExecuting={createCollectionDialogExecuting}

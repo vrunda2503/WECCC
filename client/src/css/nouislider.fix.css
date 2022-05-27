@@ -1,7 +1,74 @@
 /* .noUi-vertical .noUi-origin { top: -150% } */
 /* The vertical alignment is still an issue for the handle */
 
-.noUi-origin { width: 10% }
+.noUi-connect {
+    background: none;
+    box-shadow: none;
+}
+
+/* [name="health_today_gauge"] .sv-question__content {
+    padding: 0 50px;
+    margin-bottom: 50px;
+} */
+
+.noUi-value-large {
+    white-space: nowrap;
+    width: auto;
+}
+.noUi-horizontal .noUi-origin { width: 10% }
+
+  /* ==== */
+
+.noUi-vertical .noUi-origin {
+    height: 10%;
+    width: 0;
+}
+
+.noUi-vertical .noUi-handle {
+    width: 28px;
+    height: 34px;
+    right: -6px;
+    top: -17px;
+}
+
+.noUi-vertical .noUi-handle:before,
+.noUi-vertical .noUi-handle:after {
+    width: 14px;
+    height: 1px;
+    left: 6px;
+    top: 14px;
+}
+.noUi-vertical .noUi-handle:after {
+    top: 17px;
+}
+
+.noUi-value-vertical {
+    -webkit-transform: translate(0, -50%);
+    transform: translate(0, -50%);
+    padding-left: 25px;
+}
+  .noUi-rtl .noUi-value-vertical {
+    -webkit-transform: translate(0, 50%);
+    transform: translate(0, 50%);
+}
+
+.noUi-vertical .noUi-tooltip {
+    -webkit-transform: translate(0, -50%);
+    transform: translate(0, -50%);
+    top: 50%;
+    right: 120%;
+}
+
+.noUi-vertical .noUi-origin > .noUi-tooltip {
+    -webkit-transform: translate(0, -18px);
+    transform: translate(0, -18px);
+    top: auto;
+    right: 28px;
+}
+
+
+  /* ==== */
+
 .dashboard-flex {
     display: flex;
     flex-wrap: wrap;
