@@ -43,18 +43,19 @@ import { Checkbox } from '@material-ui/core';
 
     const headCellsChapterTemplates = [ //This is a user specified array is used to populate the table header cells. Notice the Template Specifications
         { id: 'name', numeric: false, disablePadding: true, label: 'Name' },
-        { id: 'isPublic', numeric: false, disablePadding: true, label: 'Public' },
+        { id: 'id', numeric: false, disablePadding: true, label: 'ID' },
         { id: 'createdAt', numeric: true, disablePadding: false, label: 'Date Created' },
         { id: 'updatedAt', numeric: true, disablePadding: false, label: 'Date Last Modified' },
     ];
 
     const headCellsUserChapters = [ //This is a user specified array is used to populate the table header cells. Notice the Template Specifications
         { id: 'name', numeric: false, disablePadding: true, label: 'Name' },
-        { id: 'completeStatus', numeric: false, disablePadding: false, label: 'Completeness' },
-        { id: 'approved', numeric: false, disablePadding: true, label: 'Approved' },
-        { id: 'patientName', numeric: false, disablePadding: true, label: 'Patient Name' },
-        { id: 'patientId', numeric: false, disablePadding: true, label: 'Patient ID' },
-        { id: 'collectionId', numeric: false, disablePadding: true, label: 'Collection ID' },
+        { id: 'id', numeric: false, disablePadding: true, label: 'ID' },
+        { id: 'completeness', numeric: false, disablePadding: true, label: 'Completeness' },
+        { id: 'memberName', numeric: false, disablePadding: true, label: 'Client Name' },
+        { id: 'memberId', numeric: false, disablePadding: true, label: 'Client ID' },
+        { id: 'memberCollectionId', numeric: false, disablePadding: true, label: 'Member Collection ID' },
+        { id: 'surveyTemplateId', numeric: false, disablePadding: true, label: 'Survey Template ID' },
         { id: 'createdAt', numeric: true, disablePadding: false, label: 'Date Created' },
         { id: 'updatedAt', numeric: true, disablePadding: false, label: 'Date Last Modified' },
     ];

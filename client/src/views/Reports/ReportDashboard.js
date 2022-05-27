@@ -17,26 +17,9 @@ export default class ReportDashboard extends Component {
 
         var lifeSatisfaction = reports.LS_QofL3_SD[collection] * 10;
 
-        //gaps in categorization logic
-        //score > 1.6 && !(other coniditions) == ??
-        //score > 1.6 && (sometimes > 2) == ?? 
-        var loneliness;
-        if (reports.PL_QofL1_COMB_often_count[collection] >= 1){
-            loneliness = 20;    //red scoring 20 is not significant 
-        }
-        else if (reports.PL_QofL1_COMB[collection] >= 1.6 &&
-                    (reports.PL_QofL1_COMB_often_count[collection] >= 1 ||
-                    reports.PL_QofL1_COMB_sometimes_count >= 2)){
-                loneliness = 60;    //yellow scoring
-        }
-        else if (reports.PL_QofL1_COMB[collection] >= 1.0 &&
-            reports.PL_QofL1_COMB[collection] < 1.6 ){
-                loneliness = 80;    //green scoring
-
-        }
-        else{
-            loneliness = 999;   //Incomplete / missing
-        }
+        //to convert to a score/100 from score/3 && reverse scored
+        var loneliness = (reports.PL_QofL1_COMB[collection] / 3) * 100;
+        loneliness = loneliness * -1; //reverse scored
         
         return [health, mentalHealth, wellBeing, lifeSatisfaction, loneliness];
     }

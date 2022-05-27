@@ -20,11 +20,6 @@ const surveySchema = mongoose.Schema({
         type: String,
         default: ""
     },
-    isPublic: {
-        type: Boolean,
-        required: true,
-        default: false
-    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         required: true

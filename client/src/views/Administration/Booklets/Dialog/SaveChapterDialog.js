@@ -70,28 +70,27 @@ const SaveChapterDialog = (props) => { // Notice the arrow function... regular f
 
             if(chapter)
             {
-                let HttpQuery;
+                let updateBody;
 
                 if(isTemplate)
                 {
-                    HttpQuery =
+                    updateBody =
                     {
                         name: chapter.name,
-                        surveyJSON: chapter.surveyJSON,
-                        isPublic: chapter.isPublic
+                        surveyJSON: chapter.surveyJSON
                     }
                 }
                 else
                 {
-                    HttpQuery =
+                    updateBody =
                     {
-                        approved: chapter.approved,
-                        completeStatus: chapter.completeStatus,
-                        responseJSON: chapter.responseJSON
+                        completeness: chapter.completeness,
+                        responseJSON: chapter.responseJSON,
+                        // memberCollection: chapter.memberCollection
                     }
                 }
 
-                patch((isTemplate? "surveys/" : "membersurveys/") + chapterID, appState.token, HttpQuery, (error, response) => 
+                patch((isTemplate? "surveys/" : "membersurveys/") + chapterID, appState.token, updateBody, (error, response) => 
                 {
                     if(error)
                     {
@@ -102,7 +101,7 @@ const SaveChapterDialog = (props) => { // Notice the arrow function... regular f
                     {
                         if(response.status === 200)
                         {
-
+                            
                         }
                         else
                         {

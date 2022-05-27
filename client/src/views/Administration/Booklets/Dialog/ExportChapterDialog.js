@@ -76,7 +76,7 @@ const ExportChapterDialog = (props) => { // Notice the arrow function... regular
 
         // Declaration of Stateful Variables ===
 
-        const { getParentData, setParentAlert, selectedDataItemsList,
+        const { isTemplates, getParentData, setParentAlert, selectedDataItemsList,
             exportChapterDialog, setExportChapterDialog,
             exportChapterDialogExecuting, setExportChapterDialogExecuting  } = props;
 
@@ -91,15 +91,24 @@ const ExportChapterDialog = (props) => { // Notice the arrow function... regular
             {
                 selectedDataItemsList.forEach( item =>
                 {
-
-
                     let surveyJSON = "";
                     let responseJSON = "{}";
                     
-                    if(item.surveyJSON !== "")
+                    if(isTemplates)
                     {
-                        surveyJSON = JSON.parse(item.surveyJSON);
+                        if(item.surveyJSON !== "")
+                        {
+                            surveyJSON = JSON.parse(item.surveyJSON);
+                        }
                     }
+                    else
+                    {
+                        if(item.surveyTemplate)
+                        {
+                            surveyJSON = JSON.parse(item.surveyTemplate.surveyJSON);
+                        }
+                    }
+
                     
                     if(Object.prototype.hasOwnProperty.call(item, "responseJSON"))
                     {
@@ -261,6 +270,7 @@ const ExportChapterDialog = (props) => { // Notice the arrow function... regular
 ExportChapterDialog.propTypes = 
 {
     // You can specify the props types in object style with ___.PropTypes.string.isRequired etc...
+    isTemplates: PropTypes.bool.isRequired,
     getParentData: PropTypes.func.isRequired,
     setParentAlert: PropTypes.func.isRequired,
     selectedDataItemsList: PropTypes.arrayOf(PropTypes.object),
@@ -272,6 +282,7 @@ ExportChapterDialog.propTypes =
 
 ExportChapterDialog.defaultProps = 
 {
+    exportChapterDialog: true,
     getParentData: () => {},
     setParentAlert: () => {},
     selectedDataItemsList: {},

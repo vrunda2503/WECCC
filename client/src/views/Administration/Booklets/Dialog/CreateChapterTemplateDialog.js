@@ -78,7 +78,6 @@ const CreateChapterTemplateDialog = (props) => { // Notice the arrow function...
                 var HttpDataObject = {
                     name: chapterName,
                     surveyJSON: "",
-                    isPublic: false,
                     createdBy: appState._id,
                     modifiedBy: appState._id
                 };

@@ -14,10 +14,11 @@ const SurveyController = require('../controllers/surveyController');
 const authenticate = passport.authenticate('JwtToken', { session: false });
 
 router.get('/', authenticate, SurveyController.readall);
-router.get('/:surveyID', authenticate, SurveyController.read);
+router.get('/:surveyId', authenticate, SurveyController.readBySurveyId);
+router.get('/client/:clientId', authenticate, SurveyController.readByClientId);
 router.post('/', validateBody(schemas.survey.create), authenticate, SurveyController.create);
 router.post('/query', authenticate, SurveyController.query);
-router.patch('/:surveyID', authenticate, SurveyController.update);
-router.delete('/:surveyID', authenticate, SurveyController.delete);
+router.patch('/:surveyId', authenticate, SurveyController.update);
+router.delete('/:surveyId', authenticate, SurveyController.delete);
 
 module.exports = router;

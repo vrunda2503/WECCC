@@ -219,7 +219,6 @@ const ViewUser = (props) => { // Notice the arrow function... regular function()
             setUserEdit(userOriginal);
         }, [ userOriginal ]);
 
-
     // Render Section ===
 
         return (
@@ -277,40 +276,40 @@ const ViewUser = (props) => { // Notice the arrow function... regular function()
                         <Grid item xs={12}>
                             <Card raised={true}>
                                 <AppBar position="static" disabled={userEdit? false : true}>
-                                    {appState.role !== "Patient"? (
-                                        <Tabs value={panelIndex} onChange={(event, newValue) => { panelHandler(event, newValue); } } aria-label="Account Tabs">
-                                            <Tab label="Collections"  id={`Tab-${0}`} aria-controls={`Tab-${0}`} />
-                                            <Tab label="Community"  id={`Tab-${1}`} aria-controls={`Tab-${1}`} />
-                                            <Tab label="Notes" id={`Tab-${2}`} aria-controls={`Tab-${2}`} />
-                                            <Tab label="Information" id={`Tab-${3}`} aria-controls={`Tab-${3}`} />
-                                            <Tab label="Properties" id={`Tab-${4}`} aria-controls={`Tab-${4}`} />
-                                        </Tabs>
-                                    ) : (
+                                    {appState.role == "Volunteer"? (
                                     <Tabs value={panelIndex} onChange={(event, newValue) => { panelHandler(event, newValue); } } aria-label="Account Tabs">
-                                        <Tab label="Collections"  id={`Tab-${0}`} aria-controls={`Tab-${0}`} />
-                                        <Tab label="Community"  id={`Tab-${1}`} aria-controls={`Tab-${1}`} />
+                                        {/* <Tab label="Collections"  id={`Tab-${0}`} aria-controls={`Tab-${0}`} /> */}
+                                        <Tab label="Community"  id={`Tab-${0}`} aria-controls={`Tab-${0}`} />
+                                        <Tab label="Notes" id={`Tab-${1}`} aria-controls={`Tab-${1}`} />
+                                        <Tab label="Information" id={`Tab-${2}`} aria-controls={`Tab-${2}`} />
+                                        <Tab label="Properties" id={`Tab-${3}`} aria-controls={`Tab-${3}`} />
+                                    </Tabs>
+                                    ) : (
+                                        <Tabs value={panelIndex} onChange={(event, newValue) => { panelHandler(event, newValue); } } aria-label="Account Tabs">
+                                       <Tab label="Community"  id={`Tab-${0}`} aria-controls={`Tab-${0}`} />
+                                        <Tab label="Notes" id={`Tab-${1}`} aria-controls={`Tab-${1}`} />
                                         <Tab label="Information" id={`Tab-${2}`} aria-controls={`Tab-${2}`} />
                                         <Tab label="Properties" id={`Tab-${3}`} aria-controls={`Tab-${3}`} />
                                     </Tabs>
                                     )}
                                 </AppBar>
                                 <Box mx={2} my={1} boxShadow={0}>
-                                    {appState.role !== "Patient"? (
+                                    {
                                         <>
-                                            <UserCollectionsTab
+                                            {/* <UserCollectionsTab
                                                 appState={appState}
                                                 userID={userID}
                                                 setParentAlert={setAlert}
                                                 panelId={0}
                                                 panelIndex={panelIndex}
                                                 userOriginal={userOriginal}
-                                            />
+                                            /> */}
                                             <UserCommunityTab
                                                 appState={appState}
                                                 userID={userID}
                                                 setParentAlert={setAlert}
                                                 getParentInfo={getUser}
-                                                panelId={1}
+                                                panelId={0}
                                                 panelIndex={panelIndex}
                                                 userOriginal={userOriginal}
                                             />
@@ -319,44 +318,6 @@ const ViewUser = (props) => { // Notice the arrow function... regular function()
                                                 userID={userID}
                                                 setParentAlert={setAlert}
                                                 getParentInfo={getUser}
-                                                panelId={2}
-                                                panelIndex={panelIndex}
-                                                userOriginal={userOriginal}
-                                            />
-                                            <UserInformationTab
-                                                appState={appState}
-                                                userID={userID}
-                                                setParentAlert={setAlert}
-                                                getParentInfo={getUser}
-                                                panelId={3}
-                                                panelIndex={panelIndex}
-                                                userOriginal={userOriginal}
-                                            />
-                                            <UserGeneralPropertiesTab
-                                                appState={appState}
-                                                userID={userID}
-                                                setParentAlert={setAlert}
-                                                getParentInfo={getUser}
-                                                panelId={4}
-                                                panelIndex={panelIndex}
-                                                userOriginal={userOriginal}
-                                            />
-                                        </>
-                                    ) : (
-                                        <>
-                                            <UserCollectionsTab
-                                                appState={appState}
-                                                userID={userID}
-                                                setParentAlert={setAlert}
-                                                panelId={0}
-                                                panelIndex={panelIndex}
-                                                userOriginal={userOriginal}
-                                            />
-                                            <UserCommunityTab
-                                                appState={appState}
-                                                userID={userID}
-                                                setParentAlert={setAlert}
-                                                getParentInfo={getUser}
                                                 panelId={1}
                                                 panelIndex={panelIndex}
                                                 userOriginal={userOriginal}
@@ -380,7 +341,7 @@ const ViewUser = (props) => { // Notice the arrow function... regular function()
                                                 userOriginal={userOriginal}
                                             />
                                         </>
-                                    )}
+                                    }
                                 </Box>
                             </Card>
                         </Grid>

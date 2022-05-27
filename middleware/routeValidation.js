@@ -65,26 +65,6 @@ module.exports = {
                 password: Joi.string().required()
             })
         },
-        facility: {
-            create: Joi.object().keys({
-                name: Joi.string().required(),
-                prefix: Joi.string().required()
-            })
-        },
-        memberSurvey: {
-            create: Joi.object().keys({
-                name: Joi.string().required(),
-                patientId: Joi.string().required(),
-                templateId: Joi.string().required(),
-                surveyJSON: Joi.string().required(),
-                responseJSON: Joi.string().allow(''),
-                completeStatus: Joi.number().integer().min(0).max(100),
-                approved: Joi.boolean().required(),
-                approvedBy: Joi.string().allow(''),
-                createdBy: Joi.string().required(),
-                modifiedBy: Joi.string().required()
-            })
-        },
         stickyNote: {
             create: Joi.object().keys({
                 patientId: Joi.string().required(),
@@ -95,38 +75,67 @@ module.exports = {
                 modifiedBy: Joi.string().required()
             })
         },
-        survey: {
+        facility: {
             create: Joi.object().keys({
                 name: Joi.string().required(),
-                surveyJSON: Joi.string().allow(''),
-                isPublic: Joi.boolean().required(),
+                prefix: Joi.string().required()
+            })
+        },
+        project: {
+            create: Joi.object().keys({
+                name: Joi.string().required(),
+                memberList: Joi.array().items(Joi.string()),
+                collectionList: Joi.array().items(Joi.string()),
+                createdBy: Joi.string().required(),
+                modifiedBy: Joi.string().required()
+            }),
+            // assignMember: Joi.object().keys({
+            //     projectId: Joi.string().required(),
+            //     memberList: Joi.array().items(Joi.string().required()),
+            // }),
+            // assignCollection: Joi.object().keys({
+            //     projectId: Joi.string().required(),
+            //     collectionList: Joi.array().items(Joi.string().required()),
+            // })
+        },
+        collection: {
+            create: Joi.object().keys({
+                name: Joi.string().required(),
+                projectList: Joi.array().items(Joi.string()),
+                memberCollectionList: Joi.array().items(Joi.string()),
+                memberList: Joi.array().items(Joi.string()),
+                surveyList: Joi.array().items(Joi.string().required()),
                 createdBy: Joi.string().required(),
                 modifiedBy: Joi.string().required(),
             })
         },
-        collection: {
+        memberCollection: {
             create: Joi.object().keys({
-                patientId: Joi.string().required(),
-                chapterTemplates: Joi.array().items(Joi.object({
-                    name: Joi.string().required(),
-                    surveyJSON: Joi.string().allow(''),
-                    isPublic: Joi.boolean().required(),
-                    createdBy: Joi.string().required(),
-                    modifiedBy: Joi.string().required()
-                })),
-                memberChapters: Joi.array().items(Joi.object({
-                    name: Joi.string().required(),
-                    patientId: Joi.string().required(),
-                    surveyJSON: Joi.string().required(),
-                    responseJSON: Joi.string().allow(''),
-                    completeStatus: Joi.number().integer().min(0).max(100),
-                    approved: Joi.boolean().required(),
-                    approvedBy: Joi.string().allow(''),
-                    createdBy: Joi.string().required(),
-                    modifiedBy: Joi.string().required()
-                })),
+                collectionTemplate: Joi.string().required(),
+                memberSurveyList: Joi.array().items(Joi.string()),
+                completeness: Joi.number().min(0).max(100),
+                member: Joi.string().required(),
                 createdBy: Joi.string().required(),
                 modifiedBy: Joi.string().required(),
+            })
+        },
+        survey: {
+            create: Joi.object().keys({
+                name: Joi.string().required(),
+                surveyJSON: Joi.string().allow(''),
+                createdBy: Joi.string().required(),
+                modifiedBy: Joi.string().required(),
+            })
+        },
+        memberSurvey: {
+            create: Joi.object().keys({
+                surveyTemplate: Joi.string().required(),
+                memberCollection: Joi.string().allow(null, ''),
+                member: Joi.string().required(),
+                responseJSON: Joi.string().allow(''),
+                completeness: Joi.number().min(0).max(100),
+                createdBy: Joi.string().required(),
+                modifiedBy: Joi.string().required()
             })
         }
     }

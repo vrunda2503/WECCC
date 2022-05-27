@@ -1,4 +1,4 @@
-# WECCC React App
+# Hospice WECCC React App
 
 ## Installation and Running Documentation
 1. Download files from GitHub repository, whether it be Git clone or direct download.
@@ -31,3 +31,4 @@
    - This dashboard page will display all of your assigned patients in the form of “user cards” that will display basic information and the option to view their full profile. From their full profile, you can view or edit the booklets that the patient has done, sticky notes associated with them, and extra profile information such as their address, phone number, etc.
 5. Search
    - This dashboard page allows you to view all member surveys that have been created. The table is split into four columns: the patient’s name, the name of the booklet they wrote, date created and whether the survey was approved by an administrator or not. These table rows can be filtered by the patient’s name, the booklet name, a threshold date of creation and it’s approval simultaneously, allowing for dynamic and precise searching.
+

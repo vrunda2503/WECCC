@@ -69,124 +69,106 @@ const CreateChapterUserDialog = (props) => { // Notice the arrow function... reg
             createChapterUserDialog, setCreateChapterUserDialog,
             createChapterUserDialogExecuting, setCreateChapterUserDialogExecuting } = props;
 
-        const [ chapterTemplate, setChapterTemplate ] = useState("");
-        const [ templates, setTemplates ] = useState(null);
-        const [ chapterPatient, setChapterPatient ] = useState("");
-        const [ patients, setPatients ] = useState(null);
+        const [ selectedMember, setSelectedMember ] = useState("");
+        const [ selectedSurveyTemplate, setSelectedSurveyTemplate ] = useState("");
+        const [ surveyTemplateList, setSurveyTemplateList ] = useState(null);
+        const [ memberList, setMemberList ] = useState(null);
+        
 
     // Functions ===
             
-        const populateChapterTemplates = useCallback((data) => 
+        const populateSurveyTemplateList = useCallback((data) => 
         {
-            if(data.count === 0)
+            if(data)
             {
-                setParentAlert(new AlertType('No chapter Templates. Please create chapter templates at the Management page.', "error"));
+                let tempArray = [];
+
+                for (let index = 0; index < data.length; ++index) 
+                {
+                    tempArray.push({
+                        _id: data[index]._id,
+                        name: data[index].name,
+                        surveyJSON: data[index].surveyJSON,
+                        createdAt: data[index].createdAt,
+                        updatedAt: data[index].updatedAt
+                    });
+                }
+
+                setSurveyTemplateList(tempArray);
+            }
+
+        }, [ ]);
+
+        const populateMemberList = useCallback((data) => 
+        {
+            if(data)
+            {
+                let tempArray = [];
+
+                for (let index = 0; index < data.length; ++index) 
+                {
+                    tempArray.push({
+                        _id: data[index]._id,
+                        name: data[index].info.name,
+                        role: data[index].role,
+                        email: data[index].email,
+                        createdAt: data[index].createdAt
+                    });
+
+                }
+
+                setMemberList(tempArray);
+            }
+
+        }, [ ]);
+
+        // Gets members based on account role
+        const getMembers = useCallback(() =>
+        {
+            // console.log(appState);
+
+            let MongoQuery;
+
+            if(appState.role === 'Patient')
+            {
+                MongoQuery = {
+                    _id: {
+                        $in: appState._id
+                    }
+                };
             }
             else
             {
-                if(data)
-                {
-                    let tempArray = [];
-
-                    for (let index = 0; index < data.count; ++index) 
-                    {
-                        tempArray.push({
-                            _id: data.surveys[index]._id,
-                            name: data.surveys[index].name,
-                            surveyJSON: data.surveys[index].surveyJSON,
-                            createdAt: data.surveys[index].createdAt,
-                            updatedAt: data.surveys[index].updatedAt
-                        });
+                MongoQuery = {
+                    _id: {
+                        $in: appState.patients
                     }
-
-                    setTemplates(tempArray);
-                }
+                };
             }
-        }, [ setParentAlert ]);
 
-        const populateAssignedPatients = useCallback((data) => 
-        {
-            if(appState.patients.length === 0)
+            post('users/query', appState.token, MongoQuery, (error, response) => 
             {
-                setParentAlert(new AlertType('No assigned patients. If you are not an Administrator, please contact one to get assigned patients. Refresh and try again.', "error"));
-            }
-            else
-            {
-                if(data)
+                if(error)
                 {
-                    let tempArray = [];
-
-                    for (let index = 0; index < data.count; ++index) 
-                    {
-                        tempArray.push({
-                            _id: data.users[index]._id,
-                            name: data.users[index].info.name,
-                            role: data.users[index].role,
-                            email: data.users[index].email,
-                            createdAt: data.users[index].createdAt
-                        });
-
-                    }
-
-                    setPatients(tempArray);
-                }
-            }
-        }, [ appState, setParentAlert]);
-
-        // Gets all patient users that are assigned to worker in the database
-        const getAllAssignedPatients = useCallback(() =>
-        {
-            if(appState.patients.length <= 0 && appState.role !== 'Patient')
-            {
-                setParentAlert(new AlertType('No assigned patients. If you are not an Administrator, please contact one to get assigned patients. Refresh and try again.', "error"));
-            }
-            else 
-            {
-                let HttpQuery;
-
-                if(appState.role === 'Patient')
-                {
-                    HttpQuery = {
-                        _id: {
-                            $in: appState._id
-                        }
-                    };
+                    setParentAlert(new AlertType(error.message, "error"));
                 }
                 else
                 {
-                    HttpQuery = {
-                        _id: {
-                            $in: appState.patients
-                        }
-                    };
-                }
-
-                post('users/query', appState.token, HttpQuery, (error, response) => 
-                {
-                    if(error)
+                    if(response.status === 200 || response.status === 304)
                     {
-                        if(error.response.status === 500)
-                        {
-                            setParentAlert(new AlertType(error.message, "error"));
-                        }
+                        populateMemberList(response.data.response.users); 
                     }
                     else
                     {
-                        if(response.status === 200 || response.status === 304)
-                        {
-                            populateAssignedPatients(response.data.response); 
-                        }
-                        else
-                        {
-                            setParentAlert(new AlertType('Unable to get assigned patients. Please refresh and try again.', "error"));
-                        }
+                        setParentAlert(new AlertType('Unable to get assigned member list. Please refresh and try again.', "error"));
                     }
-                });
-            }
-        }, [ appState, populateAssignedPatients, setParentAlert]);
+                }
+            });
 
-        // Gets all created booklets from the "survey" collection in the datbase
-        const getChapterTemplates = useCallback(() =>
+        }, [ appState, populateMemberList, setParentAlert]);
+
+        // Gets all created booklets from the "survey" collection in the database
+        const getSurveyTemplates = useCallback(() =>
         {
             get("surveys/",  appState.token, (error, response) => 
             {
@@ -198,43 +180,36 @@ const CreateChapterUserDialog = (props) => { // Notice the arrow function... reg
                 {
                     if(response.status === 200)
                     {
-                        populateChapterTemplates(response.data.response);
+                        populateSurveyTemplateList(response.data.surveyList);
                     }
                     else
                     {
-                        setParentAlert(new AlertType('Unable to get chapter templates. Please refresh and try again.', "error"));
+                        setParentAlert(new AlertType('Unable to get chapter Survey Templates. Please refresh and try again.', "error"));
                     }
                 }
             });
-        }, [ appState, populateChapterTemplates, setParentAlert]);
+        }, [ appState, populateSurveyTemplateList, setParentAlert]);
 
         // Insert the new booklet into the database upon creation
-        const createChapterUser = useCallback(() =>
+        const createMemberSurvey = useCallback(() =>
         {
-            if(chapterTemplate !== "" && chapterPatient !== "") {
-                
-                if(templates[chapterTemplate].surveyJSON === "")
-                {
-                    setParentAlert(new AlertType('Unable start chapter; empty template. Please refresh and try again after editing template.', "error"));
-                    return;
-                }
-
-                var HttpDataObject = {
-                    name: templates[chapterTemplate].name,
-                    patientId: patients[chapterPatient]._id,
-                    templateId: templates[chapterTemplate]._id,
-                    surveyJSON: templates[chapterTemplate].surveyJSON,
+            if(selectedSurveyTemplate !== "" && selectedMember !== "")
+            {
+                var postBody = {
+                    surveyTemplate: selectedSurveyTemplate,
+                    memberCollection: null,
+                    member: selectedMember,
                     responseJSON: "{}",
-                    approved: false,
+                    completeness: 0,
                     createdBy: appState._id,
                     modifiedBy: appState._id
                 };
 
-                post("membersurveys/", appState.token, HttpDataObject, (error, response) =>
+                post("membersurveys/", appState.token, postBody, (error, response) =>
                 {
                     if(error)
                     {
-                        setParentAlert(new AlertType('Unable start chapter. Please refresh and try again.', "error"));
+                        setParentAlert(new AlertType('Unable start member chapter. Please refresh and try again.', "error"));
                     }
                     else
                     {
@@ -242,7 +217,7 @@ const CreateChapterUserDialog = (props) => { // Notice the arrow function... reg
                         {
                             getParentData();
                             //const _id = response.data.survey._id; The id to redirect to if you wish
-                            setParentAlert(new AlertType('Successfully started user chapter.', "success")); 
+                            setParentAlert(new AlertType('Successfully started member chapter.', "success")); 
                         }   
                         else
                         {
@@ -257,38 +232,38 @@ const CreateChapterUserDialog = (props) => { // Notice the arrow function... reg
                 setParentAlert(new AlertType('Unable start chapter. Please refresh and try again.', "error"));
             }
 
-        }, [ appState, chapterTemplate, chapterPatient, patients, templates, setParentAlert, getParentData]);
+        }, [ appState, surveyTemplateList, selectedMember, memberList, selectedSurveyTemplate, setParentAlert, getParentData]);
 
         
         const closeHandler = useCallback(() => {
             setCreateChapterUserDialog(false);
-            setChapterTemplate("");
-            setChapterPatient("");
+            setSelectedSurveyTemplate("");
+            setSelectedMember("");
         }, [ setCreateChapterUserDialog ]);
 
 
         const createHandler = useCallback(() => {
             try{
                 setCreateChapterUserDialogExecuting(true);
-                createChapterUser();
+                createMemberSurvey();
                 setCreateChapterUserDialogExecuting(false);
                 setCreateChapterUserDialog(false);
-                setChapterTemplate("");
-                setChapterPatient("");
+                setSelectedSurveyTemplate("");
+                setSelectedMember("");
             }
             catch{
 
             }
-        }, [ createChapterUser]);
+        }, [ createMemberSurvey]);
 
         const templateHandler = useCallback((event) =>
         {
-            setChapterTemplate(event.target.value);
+            setSelectedSurveyTemplate(event.target.value);
         }, [ ]);
 
-        const patientHandler = useCallback((event) =>
+        const clientHandler = useCallback((event) =>
         {
-            setChapterPatient(event.target.value);
+            setSelectedMember(event.target.value);
         }, [ ]);
 
     // Hooks ===
@@ -298,11 +273,11 @@ const CreateChapterUserDialog = (props) => { // Notice the arrow function... reg
 
             if(createChapterUserDialog)
             {
-                getChapterTemplates();
-                getAllAssignedPatients(); 
+                getSurveyTemplates();
+                getMembers(); 
             }
             
-        }, [ createChapterUserDialog, getAllAssignedPatients, getChapterTemplates ]);
+        }, [ createChapterUserDialog, getMembers, getSurveyTemplates ]);
 
     // Render Section ===
 
@@ -316,7 +291,7 @@ const CreateChapterUserDialog = (props) => { // Notice the arrow function... reg
                         onClose={() => { closeHandler(); }}
                     >
                         <DialogTitle>
-                            Start user chapter
+                            Start Member Chapter
                         </DialogTitle>
                         <DialogContent>
                             {createChapterUserDialogExecuting? (
@@ -324,29 +299,29 @@ const CreateChapterUserDialog = (props) => { // Notice the arrow function... reg
                             ) : (
                                 <>
                                     <DialogContentText>
-                                        Please enter a valid chapter template and patient to start.
+                                        Please enter a valid chapter template and client to create a member chapter.
                                     </DialogContentText>
                                     <Box mx={1} my={1} boxShadow={0}>
                                         <Grid container direction="column" justifyContent="flex-start" alignItems="stretch" spacing={1}>
                                             <Grid item xs>
-                                                {patients? (
-                                                    <FormControl id="patient-options-label" variant="filled" size="small" fullWidth disabled={!patients}>
+                                                {memberList? (
+                                                    <FormControl id="client-options-label" variant="filled" size="small" fullWidth disabled={!memberList}>
                                                             <InputLabel>
-                                                                Patient
+                                                                Member
                                                             </InputLabel>
                                                             <Select
                                                                 fullWidth
-                                                                labelId="patient-options-label"
-                                                                value={chapterPatient}
-                                                                onChange={(event) => { patientHandler(event); } }
+                                                                labelId="clietnt-options-label"
+                                                                value={selectedMember}
+                                                                onChange={(event) => { clientHandler(event); } }
                                                             >
                                                                 <MenuItem value="">
                                                                     <em>None</em>
                                                                 </MenuItem>
-                                                                {patients.map( (item, index) => 
+                                                                {memberList.map( (item, index) => 
                                                                 {
                                                                     return(
-                                                                        <MenuItem key={item._id} value={index}>
+                                                                        <MenuItem key={item._id} value={item._id}>
                                                                             <em>{item.name}</em>
                                                                         </MenuItem>  
                                                                     )
@@ -358,24 +333,24 @@ const CreateChapterUserDialog = (props) => { // Notice the arrow function... reg
                                                 )}  
                                             </Grid>
                                             <Grid item xs>
-                                                {templates? (
-                                                    <FormControl id="template-options-label" variant="filled" size="small" fullWidth disabled={!templates}>
+                                                {surveyTemplateList? (
+                                                    <FormControl id="template-options-label" variant="filled" size="small" fullWidth disabled={!surveyTemplateList}>
                                                         <InputLabel>
                                                             Chapter Template
                                                         </InputLabel>
                                                         <Select
                                                             fullWidth
                                                             labelId="template-options-label"
-                                                            value={chapterTemplate}
+                                                            value={selectedSurveyTemplate}
                                                             onChange={(event) => { templateHandler(event); } }
                                                         >
                                                             <MenuItem value="">
                                                                 <em>None</em>
                                                             </MenuItem>
-                                                            {templates.map( (item, index) => 
+                                                            {surveyTemplateList.map( (item, index) => 
                                                             {
                                                                 return(
-                                                                    <MenuItem key={item._id} value={index}>
+                                                                    <MenuItem key={item._id} value={item._id}>
                                                                         <em>{item.name}</em>
                                                                     </MenuItem>  
                                                                 )
@@ -395,7 +370,7 @@ const CreateChapterUserDialog = (props) => { // Notice the arrow function... reg
                             <Button color="primary" variant="contained" onClick={() => { closeHandler(); }} disabled={createChapterUserDialogExecuting}>
                                 Cancel
                             </Button>
-                            <Button color="primary" variant="contained" startIcon={<AddBoxOutlinedIcon />} onClick={() => { createHandler(); }} disabled={createChapterUserDialogExecuting || (chapterTemplate === ""? true : false) || (chapterPatient === ""? true : false)}>
+                            <Button color="primary" variant="contained" startIcon={<AddBoxOutlinedIcon />} onClick={() => { createHandler(); }} disabled={createChapterUserDialogExecuting || (surveyTemplateList === ""? true : false) || (selectedMember === ""? true : false)}>
                                 Start
                             </Button>
                         </DialogActions>

@@ -46,9 +46,21 @@ const userSchema = mongoose.Schema({
         type: [mongoose.Schema.Types.ObjectId],
         ref: 'User'
     },
-    collections: {
+    projectList: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'Project'
+    },
+    collectionList: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: 'Collection'
+    },
+    memberCollectionList: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'MemberCollection'
+    },
+    memberSurveyList: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: 'MemberSurvey'
     },
     info: {
         name: {

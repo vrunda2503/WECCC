@@ -15,7 +15,7 @@ import AlertMessage from '../../../../components/AlertMessage';
 // import 'nouislider/dist/nouislider.css'; This is the newer 15.5.0 version
 // import "nouislider/distribute/nouislider.css"; This is the old 9.2.0 version
 
-import 'nouislider/dist/nouislider.css';
+import "nouislider/distribute/nouislider.css";
 import '../../../../css/nouislider.fix.css';
 
 import "bootstrap-slider/dist/css/bootstrap-slider.css";
@@ -170,7 +170,7 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
             {
                 if(!survey.current.hasErrors())
                 {
-                    setChapterCopy({...chapterCopy, completeStatus: calculateCompleteness(survey.current), responseJSON: JSON.stringify(result.data)});            
+                    setChapterCopy({...chapterCopy, completeness: calculateCompleteness(survey.current), responseJSON: JSON.stringify(result.data)});            
                 }
             }
             
@@ -195,19 +195,19 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
         }, [ ]);
 
         
-        const restoreHandler = useCallback(() => 
-        {
-            setChapterCopy(chapterOriginal);
+        // const restoreHandler = useCallback(() => 
+        // {
+        //     setChapterCopy(chapterOriginal);
 
-            survey.current.clear();
+        //     survey.current.clear();
     
-            survey.current.mergeData(JSON.parse(chapterOriginal.responseJSON));
+        //     survey.current.mergeData(JSON.parse(chapterOriginal.responseJSON));
 
-            survey.current.render();
+        //     survey.current.render();
 
-            setAlert(new AlertType('Restored chapter back to previous saved state. You can continue editing if you wish.', "info"));
+        //     setAlert(new AlertType('Restored chapter back to previous saved state. You can continue editing if you wish.', "info"));
 
-        }, [ chapterOriginal ]);
+        // }, [ chapterOriginal ]);
 
         const restartHandler = useCallback(() => 
         {
@@ -243,11 +243,11 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
             
         }, [ chapterCopy ]);
 
-        const approvedHandler = useCallback((event) => 
-        {
-            setChapterCopy({...chapterCopy, approved: event.target.checked});
+        // const approvedHandler = useCallback((event) => 
+        // {
+        //     setChapterCopy({...chapterCopy, approved: event.target.checked});
 
-        }, [ chapterCopy ]);
+        // }, [ chapterCopy ]);
 
         
         const valueChangeHandler = (result, options) =>
@@ -263,7 +263,7 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
                 setProgress(false);
             }
 
-            setChapterCopy({...chapterCopy, completeStatus: calculateCompleteness(survey.current), responseJSON: JSON.stringify(result.data)});
+            setChapterCopy({...chapterCopy, completeness: calculateCompleteness(survey.current), responseJSON: JSON.stringify(result.data)});
             //We can use this to check change of specific inputs
         };
     
@@ -272,16 +272,6 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
             if(chapterCopy.responseJSON !== chapterOriginal.responseJSON)
             {
                 setProgress(true);
-            }
-            else
-            {
-                if(chapterCopy.approved !== chapterOriginal.approved)
-                {
-                    setProgress(true);
-                }
-                else{
-                    setProgress(false);
-                } 
             }
 
         }, [ chapterOriginal, chapterCopy ]);
@@ -317,9 +307,9 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
 
                 setChapterCopy({...chapterOriginal});
 
-                if(chapterOriginal.surveyJSON !== "")
+                if(chapterOriginal.surveyTemplate.surveyJSON !== "")
                 {
-                    let surveyJSON = JSON.parse(chapterOriginal.surveyJSON);
+                    let surveyJSON = JSON.parse(chapterOriginal.surveyTemplate.surveyJSON);
                     let responseJSON = JSON.parse(chapterOriginal.responseJSON);
 
                     let tempSurvey = new Survey.Model(surveyJSON);
@@ -375,7 +365,7 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
                                     </Grid> */}
                                     <Grid item xs>
                                         <Typography variant="h4" color="inherit" align="left" gutterBottom>
-                                            Filling in {chapterOriginal? `"${chapterOriginal.name}"` : null}
+                                            Filling in {chapterOriginal? `"${chapterOriginal.surveyTemplate.name}"` : null}
                                         </Typography>
                                     </Grid>
                                 </Grid>
@@ -448,7 +438,7 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
                                                                         </Button>
                                                                     </Tooltip> 
                                                                 </Grid>
-                                                                <Grid item>
+                                                                {/* <Grid item>
                                                                     <Tooltip
                                                                         placement="bottom"
                                                                         title="Restore Chapter"
@@ -463,7 +453,7 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
                                                                             Restore
                                                                         </Button>
                                                                     </Tooltip>
-                                                                </Grid>
+                                                                </Grid> */}
                                                                 <Grid item>
                                                                     <Tooltip
                                                                         placement="bottom"
@@ -510,14 +500,14 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
                                                                         </Button>
                                                                     )}
                                                                 </Grid>
-                                                                <Grid item>
+                                                                {/* <Grid item>
                                                                     <FormControlLabel
                                                                         className={classes.FormControlLabel}
                                                                         control={<Switch checked={chapterCopy.approved} onChange={ (event) => { approvedHandler(event); }} />}
                                                                         label={chapterCopy.approved? "Approved" : "Not Approved"}
                                                                         labelPlacement="end"
                                                                     />
-                                                                </Grid>
+                                                                </Grid> */}
                                                             </Grid>
                                                         </Box>
                                                     </Grid>
@@ -541,7 +531,7 @@ const EditChapterUser = (props) => { // Notice the arrow function... regular fun
                                                                     size="small"
                                                                     fullWidth
                                                                     variant="filled"
-                                                                    value={chapterOriginal.name}
+                                                                    value={chapterOriginal.surveyTemplate.name}
                                                                     InputProps={{
                                                                         readOnly: true,
                                                                     }}
