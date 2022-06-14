@@ -27,6 +27,11 @@ const styles = {
     }
 }
 
+window.onbeforeunload = (event) => {
+	window.localStorage.clear();
+	return ''; // Legacy method for cross browser support
+  };
+
 class App extends Component 
 {
 	constructor(props)
