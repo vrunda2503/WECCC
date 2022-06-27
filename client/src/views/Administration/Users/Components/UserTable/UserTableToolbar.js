@@ -156,7 +156,7 @@ const UserTableToolbar = (props) => { // Notice the arrow function... regular fu
                     // If no survey exixts for selected user
                     else {
                         // setViewUrl("/members"); 
-                        setParentAlert(new AlertType('There are no survey for selected user ', "info"));       
+                        // setParentAlert(new AlertType('There are no survey for selected user ', "info"));       
                     }
                 } 
                 else if(appState.role === "Coordinator")
